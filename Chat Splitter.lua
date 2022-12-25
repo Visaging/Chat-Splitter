@@ -250,9 +250,6 @@ end
 
 function main()
     if not isSampfuncsLoaded() or not isSampLoaded() then return end
-    if settings.autoupdate then update_script(true, false, false, false) else update_script(false, false, false, true) end
-    sampAddChatMessage("{DFBD68}Chat Splitter by {FFFF00}Visage. {FF0000}[/chatsplit].", -1)
-    sampRegisterChatCommand("csforceupdate", function() update_script(false, false, true, false) end)
     while not isSampAvailable() do wait(100) end
     for k, v in pairs(settings.flag) do
         if v then
@@ -263,6 +260,9 @@ function main()
     sampRegisterChatCommand("chatsplit", function()
         imgui_window.bEnable.v = not imgui_window.bEnable.v
     end)
+    if settings.autoupdate then update_script(true, false, false, false) else update_script(false, false, false, true) end
+    sampAddChatMessage("{DFBD68}Chat Splitter by {FFFF00}Visage. {FF0000}[/chatsplit].", -1)
+    sampRegisterChatCommand("csforceupdate", function() update_script(false, false, true, false) end)
     while true do
         wait(0)
         if settings.font.show and sampIsChatVisible() then
