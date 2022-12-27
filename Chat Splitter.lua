@@ -353,7 +353,10 @@ function events.onServerMessage(clr, msg)
             end
         end
         if settings.chats.admin then
-            if clr == -86 and msg:match("* .+Admin.+%:") or msg:match("* Management.+%:") then
+
+            --Admin Chat (/a)
+
+            if msg:match("{00FF00}* Junior Admin.+%: {FFFF91}") or msg:match("{FDEE00}* General Admin.+: {FFFF91}") or msg:match("{FFAA65}* Senior Admin.+%: {FFFF91}") or msg:match("{D5010B}* Head Admin.+%: {FFFF91}") or msg:match("{AE00A8}* Management.+%: {FFFF91}") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -373,7 +376,14 @@ function events.onServerMessage(clr, msg)
 
             -- Reports
 
-            if clr == -5963606 and (msg:match("____________________ REPORTS _____________________") or msg:match("___________________________________________________")) then
+            if clr == -5963606 and msg:match("____________________ REPORTS _____________________") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+            if clr == -5963606 and msg:match("___________________________________________________") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -387,7 +397,7 @@ function events.onServerMessage(clr, msg)
                 table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
                 return false
             end
-            if clr == -28161 and (msg:match("Report from %[%d+%].+%(RID%: %d+%)%:.+") or msg:match("There are {FF0606}.+pending.+{FFFF91} that are expiring %- please check /reports and respond.")) then
+            if clr == -28161 and (msg:match("Report from %[%d+%].+%(RID%: %d+%)%:.+") or msg:match("There.+{FF0606}.+pending.+{FFFF91} that.+expiring %- please check /reports and respond.")) then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -402,16 +412,16 @@ function events.onServerMessage(clr, msg)
                 return false
             end
 
-            -- AdmCmd and AdmWarning
+            -- AdmCmd & AdmWarning
 
-            if clr == -1439485014 and msg:match("AdmWarning%:") then
+            if clr == -1439485014 and msg:match("AdmWarning%:.+") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
                 table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
                 return false
             end
-            if clr == -8388353 and msg:match("AdmCmd%:") then
+            if  msg:match("AdmCmd%:.+") and (clr == -8388353 or clr == -10270806) then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -419,7 +429,7 @@ function events.onServerMessage(clr, msg)
                 return false
             end
 
-            --On-Duty % Off-Duty
+            --On-Duty & Off-Duty
 
             if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as a.+Admin.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
@@ -435,7 +445,7 @@ function events.onServerMessage(clr, msg)
                 table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
                 return false
             end
-            if clr == -65366 and (msg:match("You are now off-duty as admin, and only have access to /admins /check /jail /ban /sban /kick /skick /showflags /reports /nrn") or msg:match("You are now on-duty as admin and have access to all your commands, see /ah.") ) then
+            if clr == -65366 and (msg:match("You are now off%-duty as admin, and only have access to /admins /check /jail /ban /sban /kick /skick /showflags /reports /nrn") or msg:match("You are now on%-duty as admin and have access to all your commands, see /ah.")) then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -443,6 +453,16 @@ function events.onServerMessage(clr, msg)
                 return false
             end
             if clr == -16382209 and msg:match("Please remember to turn off any hacks you may have.") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+
+            --Alerts
+
+            if clr == -86 and msg:match("The player you were spectating has left the server.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
