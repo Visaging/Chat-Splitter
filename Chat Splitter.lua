@@ -1,8 +1,8 @@
 script_name("Chat Splitter")
 script_author("Visage A.K.A. Ishaan Dunne")
 
-local script_version = 1.70
-local script_version_text = '1.70'
+local script_version = 1.71
+local script_version_text = '1.71'
 
 local imgui = require "imgui"
 local encoding = require "encoding"
