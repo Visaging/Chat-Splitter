@@ -243,6 +243,7 @@ end
 function main()
     if not isSampfuncsLoaded() or not isSampLoaded() then return end
     while not isSampAvailable() do wait(100) end
+    showCursor(false)
     for k, v in pairs(settings.flag) do
         if v then
             flag = flag + flags[k]
