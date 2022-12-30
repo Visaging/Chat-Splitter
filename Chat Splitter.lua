@@ -1,8 +1,8 @@
 script_name("Chat Splitter")
 script_author("Visage A.K.A. Ishaan Dunne")
 
-local script_version = 1.71
-local script_version_text = '1.71'
+local script_version = 1.72
+local script_version_text = '1.72'
 
 local imgui = require "imgui"
 local encoding = require "encoding"
@@ -14,7 +14,6 @@ local dlstatus = require('moonloader').download_status
 local script_path = thisScript().path
 local script_url = "https://raw.githubusercontent.com/Visaging/Chat-Splitter/main/Chat%20Splitter.lua"
 local update_url = "https://raw.githubusercontent.com/Visaging/Chat-Splitter/main/Chat%20Splitter.txt"
-local fa = require 'fAwesome5'
 local flags = require 'moonloader'.font_flag
 local events = require 'samp.events'
 
@@ -44,6 +43,8 @@ local settings = inicfg.load({
         com       = false,
         newbie    = false,
         admin     = false,
+        facr      = false,
+        facd      = false,
     },
     autoupdate = false,
 }, 'ChatSplitter.ini')
@@ -75,7 +76,7 @@ imgui_window = {
     
         colors[clr.Text]                   = ImVec4(0.95, 0.96, 0.98, 1.00);
         colors[clr.TextDisabled]           = ImVec4(0.29, 0.29, 0.29, 1.00);
-        colors[clr.WindowBg]               = ImVec4(0.14, 0.14, 0.14, 1.00);
+        colors[clr.WindowBg]               = ImVec4(0.07, 0.07, 0.07, 1.00);
         colors[clr.ChildWindowBg]          = ImVec4(0.14, 0.14, 0.14, 1.00);
         colors[clr.PopupBg]                = ImVec4(0.08, 0.08, 0.08, 0.94);
         colors[clr.Border]                 = ImVec4(0.14, 0.14, 0.14, 1.00);
@@ -83,8 +84,8 @@ imgui_window = {
         colors[clr.FrameBg]                = ImVec4(0.22, 0.22, 0.22, 1.00);
         colors[clr.FrameBgHovered]         = ImVec4(0.18, 0.18, 0.18, 1.00);
         colors[clr.FrameBgActive]          = ImVec4(0.09, 0.12, 0.14, 1.00);
-        colors[clr.TitleBg]                = ImVec4(0.14, 0.14, 0.14, 0.81);
-        colors[clr.TitleBgActive]          = ImVec4(0.14, 0.14, 0.14, 1.00);
+        colors[clr.TitleBg]                = ImVec4(0.12, 0.12, 0.12, 1.00);
+        colors[clr.TitleBgActive]          = ImVec4(0.12, 0.12, 0.12, 1.00);
         colors[clr.TitleBgCollapsed]       = ImVec4(0.00, 0.00, 0.00, 0.51);
         colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
         colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
@@ -122,9 +123,6 @@ imgui_window.style_dark()
 local buffer1 = imgui.ImBuffer(128)
 local buffer2 = imgui.ImBuffer(128)
 local buffer = imgui.ImBuffer(settings.font.name, 32)
-local show = imgui.ImBool(settings.font.show)
-local timestamp = imgui.ImBool(settings.font.timestamp)
-local reg = imgui.ImBool(settings.font.reg)
 local size = imgui.ImInt(settings.font.size)
 local lines = imgui.ImInt(settings.font.lines)
 local interval = imgui.ImInt(settings.font.interval)
@@ -137,26 +135,12 @@ local renderMessages = {}
 local contextMenu = imgui.ImBool(false)
 local cMsg = 0
 
-local fa_font = nil
-local fa_glyph_ranges = imgui.ImGlyphRanges({ fa.min_range, fa.max_range })
-
-function imgui.BeforeDrawFrame()
-    if fa_font == nil then
-        local font_config = imgui.ImFontConfig()
-        font_config.MergeMode = true
-        font_config.SizePixels = 15.0;
-        font_config.GlyphExtraSpacing.x = 0.1
-        font_config.GlyphOffset.y = 1.5
-        fa_font = imgui.GetIO().Fonts:AddFontFromFileTTF('moonloader\\lib\\fa5.ttf', font_config.SizePixels, font_config, fa_glyph_ranges)
-    end
-end
-
 function imgui.OnDrawFrame()
     if imgui_window.bEnable.v then
         width, height = getScreenResolution()
         imgui.SetNextWindowPos(imgui.ImVec2(width / 2, height / 2), imgui.Cond.Always, imgui.ImVec2(0.5, 0.5))
         imgui.Begin(u8("Chat Splitter | Settings"), imgui_window.bEnable, imgui_window.property)
-            if imgui.Checkbox(u8("Enable additional chat"), show) then settings.font.show = show.v end
+            if imgui.Checkbox(u8("Enable additional chat"), imgui.ImBool(settings.font.show)) then settings.font.show = not settings.font.show end
             imgui.Separator()
             imgui.Spacing()
             imgui.PushItemWidth(100)
@@ -165,8 +149,8 @@ function imgui.OnDrawFrame()
             if imgui.InputInt(u8("Number of lines"), lines) then settings.font.lines = lines.v end
             if imgui.InputInt(u8("Font size"), size) then settings.font.size = size.v font = renderCreateFont(settings.font.name, settings.font.size, flag) end
             imgui.PopItemWidth()
-            if imgui.Checkbox(u8("Time Stamp"), timestamp) then settings.font.timestamp = timestamp.v end
-            if imgui.Checkbox(u8("Case Sensitivity"), reg) then settings.font.reg = reg.v end
+            if imgui.Checkbox(u8("Time Stamp"), imgui.ImBool(settings.font.timestamp)) then settings.font.timestamp = not settings.font.timestamp end
+            if imgui.Checkbox(u8("Case Sensitivity"), imgui.ImBool(settings.font.reg)) then settings.font.reg = not settings.font.reg end
             imgui.Text(u8("Font Flags: "))
             imgui.BeginGroup()
                 local i = 1
@@ -187,12 +171,14 @@ function imgui.OnDrawFrame()
                     end
                 end
             imgui.EndGroup()
-            
-            if imgui.Button(fa.ICON_CLIPBOARD_CHECK .. u8(' Chat Selection Menu'), imgui.ImVec2(-1, 25)) then
+            imgui.Spacing()
+
+            if imgui.Button('Chat Selection Menu', imgui.ImVec2(-1, 25)) then
                 imgui.OpenPopup('chatselect')
             end
             if imgui.BeginPopup('chatselect') then
                 imgui.Text("Select which chat to split:")
+                imgui.Separator()
                 imgui.Spacing()
                 imgui.Text("Staff Chats:")
                 imgui.Spacing()
@@ -200,24 +186,27 @@ function imgui.OnDrawFrame()
                 if imgui.Checkbox(u8('Helper Chat'), imgui.ImBool(settings.chats.helper)) then settings.chats.helper = not settings.chats.helper end
                 if imgui.Checkbox(u8('Newbie Chat'), imgui.ImBool(settings.chats.newbie)) then settings.chats.newbie = not settings.chats.newbie end
                 if imgui.Checkbox(u8('Admin Chat'), imgui.ImBool(settings.chats.admin)) then settings.chats.admin = not settings.chats.admin end
-                --[[if imgui.IsItemHovered() then
-                    if imgui.IsMouseClicked(0,false) then
-                        imgui.CloseCurrentPopup()
-                    end
-                end]]
+                if imgui.IsItemHovered() then imgui.SetTooltip('This includes all admin related chats.') end
+                imgui.Spacing()
+                imgui.Separator()
+                imgui.Spacing()
+                imgui.Text("Faction Chats:")
+                if imgui.Checkbox(u8('Faction Radio (r)'), imgui.ImBool(settings.chats.facr)) then settings.chats.facr = not settings.chats.facr end
+                if imgui.Checkbox(u8('Department Radio (d)'), imgui.ImBool(settings.chats.facd)) then settings.chats.facd = not settings.chats.facd end
+                if imgui.IsItemHovered() then imgui.SetTooltip('This includes hospital wanted alerts.') end
                 save()
                 imgui.EndPopup()
             end
 
-            if imgui.Button(fa.ICON_ARROWS_ALT .. u8(' Reposition'), imgui.ImVec2(-1, 25)) then
+            if imgui.Button('Reposition', imgui.ImVec2(-1, 25)) then
                 changePos = true
                 imgui_window.bEnable.v = false
             end
-            if imgui.Button(fa.ICON_TRASH .. u8(' Clear extra chat'), imgui.ImVec2(-1, 25)) then
+            if imgui.Button('Clear extra chat', imgui.ImVec2(-1, 25)) then
                 renderMessages = {}
             end
-            if imgui.Button(fa.ICON_SAVE .. u8(' Save Config'), imgui.ImVec2(-1, 25)) then save() sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} Config Saved!", script.this.name), -1) end
-            if imgui.Button(fa.ICON_SYNC .. u8(' Update'), imgui.ImVec2(100, 25)) then update_script(true, true, false, false) end
+            if imgui.Button('Save Config', imgui.ImVec2(-1, 25)) then save() sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} Config Saved!", script.this.name), -1) end
+            if imgui.Button('Update', imgui.ImVec2(100, 25)) then update_script(true, true, false, false) end
             imgui.SameLine(nil, 10)
             if imgui.Checkbox(u8('Auto Update'), imgui.ImBool(settings.autoupdate)) then settings.autoupdate = not settings.autoupdate end
             imgui.Spacing()
@@ -323,6 +312,17 @@ function join_argb(a, r, g, b) -- by FYP
     return argb
 end
 
+function imgui.CustomButton(name, color, colorHovered, colorActive, size)
+    local clr = imgui.Col
+    imgui.PushStyleColor(clr.Button, color)
+    imgui.PushStyleColor(clr.ButtonHovered, colorHovered)
+    imgui.PushStyleColor(clr.ButtonActive, colorActive)
+    if not size then size = imgui.ImVec2(0, 0) end
+    local result = imgui.Button(name, size)
+    imgui.PopStyleColor(3)
+    return result
+end
+
 function events.onServerMessage(clr, msg)
     if settings.font.show then
         if settings.chats.helper and clr == -1511456854 then
@@ -356,7 +356,7 @@ function events.onServerMessage(clr, msg)
 
             --Admin Chat (/a)
 
-            if msg:match("{00FF00}* Junior Admin.+%: {FFFF91}") or msg:match("{FDEE00}* General Admin.+: {FFFF91}") or msg:match("{FFAA65}* Senior Admin.+%: {FFFF91}") or msg:match("{D5010B}* Head Admin.+%: {FFFF91}") or msg:match("{AE00A8}* Management.+%: {FFFF91}") then
+            if msg:match("{00FF00}* Junior Admin.+%: {FFFF91}.+") or msg:match("{FDEE00}* General Admin.+%: {FFFF91}") or msg:match("{FFAA65}* Senior Admin.+%: {FFFF91}") or msg:match("{D5010B}* Head Admin.+%: {FFFF91}") or msg:match("{AE00A8}* Management.+%: {FFFF91}") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -470,6 +470,24 @@ function events.onServerMessage(clr, msg)
                 return false
             end
         end
+        if settings.chats.facr and clr == -1920073729 then
+            if msg:match("** .**") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+        end
+        if settings.chats.facd and clr == -2686902 then
+            if msg:match("** .**") or msg:match(".+has reported.+as a wanted person.") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+        end
     end
 end
 
@@ -488,7 +506,7 @@ function update_script(norupdate, noupdatecheck, forceupdate, updaterem)
 		    update_version = update_text:match("version: (.+)")
 		    if update_version ~= nil then
 			    if tonumber(update_version) > script_version then
-				    sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} New version found! Current Version: [{00b7ff}%s{FFFFFF}] Latest Version: [{00b7ff}%s{FFFFFF}]", script.this.name, script_version_text, update_version), 10944256)
+				    sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} New version found! Current Version: [{00b7ff}%s{FFFFFF}] Latest Version: [{00b7ff}%s{FFFFFF}]", script.this.name, script_version_text, update_version), -1)
                 end
             end
         end
@@ -496,7 +514,7 @@ function update_script(norupdate, noupdatecheck, forceupdate, updaterem)
     if forceupdate then
         downloadUrlToFile(script_url, script_path, function(id, status)
             if status == dlstatus.STATUS_ENDDOWNLOADDATA then
-                sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} The update was successful!", script.this.name), 10944256)
+                sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} The update was successful!", script.this.name), -1)
                 lua_thread.create(function()
                     wait(500) 
                     thisScript():reload()
@@ -510,10 +528,10 @@ function update_script(norupdate, noupdatecheck, forceupdate, updaterem)
             update_version = update_text:match("version: (.+)")
             if update_version ~= nil then
                 if tonumber(update_version) > script_version then
-                    sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} New version found! The update is in progress.", script.this.name), 10944256)
+                    sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} New version found! The update is in progress.", script.this.name), -1)
                     downloadUrlToFile(script_url, script_path, function(id, status)
                         if status == dlstatus.STATUS_ENDDOWNLOADDATA then
-                            sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} The update was successful!", script.this.name), 10944256)
+                            sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} The update was successful!", script.this.name), -1)
                             lua_thread.create(function()
                                 wait(500) 
                                 thisScript():reload()
@@ -522,7 +540,7 @@ function update_script(norupdate, noupdatecheck, forceupdate, updaterem)
                     end)
                 else
                     if noupdatecheck then
-                        sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} No new version found.", script.this.name), 10944256)
+                        sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} No new version found.", script.this.name), -1)
                     end
                 end
             end
