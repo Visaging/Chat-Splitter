@@ -1,14 +1,16 @@
 script_name("Chat Splitter")
 script_author("Visage A.K.A. Ishaan Dunne")
 
-local script_version = 1.72
-local script_version_text = '1.72'
+local script_version = 1.73
+local script_version_text = '1.73'
 
-local imgui = require "imgui"
+local imgui, ffi = require 'mimgui', require 'ffi'
+local new, str, sizeof = imgui.new, ffi.string, ffi.sizeof
 local encoding = require "encoding"
 encoding.default = "CP1251"
 u8 = encoding.UTF8
 local inicfg = require 'inicfg'
+local fa = require 'fAwesome5'
 local https = require 'ssl.https'
 local dlstatus = require('moonloader').download_status
 local script_path = thisScript().path
@@ -27,7 +29,6 @@ local settings = inicfg.load({
         y = 300,
         timestamp = true,
         lines = 6,
-        reg = true,
     },
     flag = {
         NONE      = false,
@@ -49,213 +50,151 @@ local settings = inicfg.load({
     autoupdate = false,
 }, 'ChatSplitter.ini')
 
-imgui_window = {
-    bEnable = imgui.ImBool(false),
-    property = imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoResize,
-    style_dark = function()
-        imgui.SwitchContext()
-        local style = imgui.GetStyle()
-        local colors = style.Colors
-        local clr = imgui.Col
-        local ImVec4 = imgui.ImVec4
-    
-        style.WindowPadding = imgui.ImVec2(8, 8)
-        style.WindowRounding = 6
-        style.ChildWindowRounding = 5
-        style.FramePadding = imgui.ImVec2(5, 3)
-        style.FrameRounding = 3.0
-        style.ItemSpacing = imgui.ImVec2(5, 4)
-        style.ItemInnerSpacing = imgui.ImVec2(4, 4)
-        style.IndentSpacing = 21
-        style.ScrollbarSize = 10.0
-        style.ScrollbarRounding = 13
-        style.GrabMinSize = 8
-        style.GrabRounding = 1
-        style.WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
-        style.ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
-    
-        colors[clr.Text]                   = ImVec4(0.95, 0.96, 0.98, 1.00);
-        colors[clr.TextDisabled]           = ImVec4(0.29, 0.29, 0.29, 1.00);
-        colors[clr.WindowBg]               = ImVec4(0.07, 0.07, 0.07, 1.00);
-        colors[clr.ChildWindowBg]          = ImVec4(0.14, 0.14, 0.14, 1.00);
-        colors[clr.PopupBg]                = ImVec4(0.08, 0.08, 0.08, 0.94);
-        colors[clr.Border]                 = ImVec4(0.14, 0.14, 0.14, 1.00);
-        colors[clr.BorderShadow]           = ImVec4(1.00, 1.00, 1.00, 0.10);
-        colors[clr.FrameBg]                = ImVec4(0.22, 0.22, 0.22, 1.00);
-        colors[clr.FrameBgHovered]         = ImVec4(0.18, 0.18, 0.18, 1.00);
-        colors[clr.FrameBgActive]          = ImVec4(0.09, 0.12, 0.14, 1.00);
-        colors[clr.TitleBg]                = ImVec4(0.12, 0.12, 0.12, 1.00);
-        colors[clr.TitleBgActive]          = ImVec4(0.12, 0.12, 0.12, 1.00);
-        colors[clr.TitleBgCollapsed]       = ImVec4(0.00, 0.00, 0.00, 0.51);
-        colors[clr.MenuBarBg]              = ImVec4(0.20, 0.20, 0.20, 1.00);
-        colors[clr.ScrollbarBg]            = ImVec4(0.02, 0.02, 0.02, 0.39);
-        colors[clr.ScrollbarGrab]          = ImVec4(0.36, 0.36, 0.36, 1.00);
-        colors[clr.ScrollbarGrabHovered]   = ImVec4(0.18, 0.22, 0.25, 1.00);
-        colors[clr.ScrollbarGrabActive]    = ImVec4(0.24, 0.24, 0.24, 1.00);
-        colors[clr.ComboBg]                = ImVec4(0.24, 0.24, 0.24, 1.00);
-        colors[clr.CheckMark]              = ImVec4(1.00, 0.28, 0.28, 1.00);
-        colors[clr.SliderGrab]             = ImVec4(1.00, 0.28, 0.28, 1.00);
-        colors[clr.SliderGrabActive]       = ImVec4(1.00, 0.28, 0.28, 1.00);
-        colors[clr.Button]                 = ImVec4(1.00, 0.28, 0.28, 1.00);
-        colors[clr.ButtonHovered]          = ImVec4(1.00, 0.39, 0.39, 1.00);
-        colors[clr.ButtonActive]           = ImVec4(1.00, 0.21, 0.21, 1.00);
-        colors[clr.Header]                 = ImVec4(1.00, 0.28, 0.28, 1.00);
-        colors[clr.HeaderHovered]          = ImVec4(1.00, 0.39, 0.39, 1.00);
-        colors[clr.HeaderActive]           = ImVec4(1.00, 0.21, 0.21, 1.00);
-        colors[clr.ResizeGrip]             = ImVec4(1.00, 0.28, 0.28, 1.00);
-        colors[clr.ResizeGripHovered]      = ImVec4(1.00, 0.39, 0.39, 1.00);
-        colors[clr.ResizeGripActive]       = ImVec4(1.00, 0.19, 0.19, 1.00);
-        colors[clr.CloseButton]            = ImVec4(0.40, 0.39, 0.38, 0.16);
-        colors[clr.CloseButtonHovered]     = ImVec4(0.40, 0.39, 0.38, 0.39);
-        colors[clr.CloseButtonActive]      = ImVec4(0.40, 0.39, 0.38, 1.00);
-        colors[clr.PlotLines]              = ImVec4(0.61, 0.61, 0.61, 1.00);
-        colors[clr.PlotLinesHovered]       = ImVec4(1.00, 0.43, 0.35, 1.00);
-        colors[clr.PlotHistogram]          = ImVec4(1.00, 0.21, 0.21, 1.00);
-        colors[clr.PlotHistogramHovered]   = ImVec4(1.00, 0.18, 0.18, 1.00);
-        colors[clr.TextSelectedBg]         = ImVec4(1.00, 0.32, 0.32, 1.00);
-        colors[clr.ModalWindowDarkening]   = ImVec4(0.26, 0.26, 0.26, 0.60);
-    end,
-    colorTitle = imgui.ImVec4(0.86, 0.07, 0.23, 1.00),
-}
-
-imgui_window.style_dark()
-
-local buffer1 = imgui.ImBuffer(128)
-local buffer2 = imgui.ImBuffer(128)
-local buffer = imgui.ImBuffer(settings.font.name, 32)
-local size = imgui.ImInt(settings.font.size)
-local lines = imgui.ImInt(settings.font.lines)
-local interval = imgui.ImInt(settings.font.interval)
 local changePos = false
 local flag = 0
 local checkboxes = {}
-for k, v in pairs(settings.flag) do checkboxes[k] = imgui.ImBool(v) end
+for k, v in pairs(settings.flag) do checkboxes[k] = new.bool(v) end
 local renderMessages = {}
-
-local contextMenu = imgui.ImBool(false)
 local cMsg = 0
 
-function imgui.OnDrawFrame()
-    if imgui_window.bEnable.v then
-        width, height = getScreenResolution()
-        imgui.SetNextWindowPos(imgui.ImVec2(width / 2, height / 2), imgui.Cond.Always, imgui.ImVec2(0.5, 0.5))
-        imgui.Begin(u8("Chat Splitter | Settings"), imgui_window.bEnable, imgui_window.property)
-            if imgui.Checkbox(u8("Enable additional chat"), imgui.ImBool(settings.font.show)) then settings.font.show = not settings.font.show end
-            imgui.Separator()
-            imgui.Spacing()
-            imgui.PushItemWidth(100)
-            if imgui.InputText(u8("Font name"), buffer) then settings.font.name = buffer.v font = renderCreateFont(settings.font.name, settings.font.size, flag) end
-            if imgui.InputInt(u8("Line spacing"), interval) then settings.font.interval = interval.v font = renderCreateFont(settings.font.name, settings.font.size, flag) end
-            if imgui.InputInt(u8("Number of lines"), lines) then settings.font.lines = lines.v end
-            if imgui.InputInt(u8("Font size"), size) then settings.font.size = size.v font = renderCreateFont(settings.font.name, settings.font.size, flag) end
-            imgui.PopItemWidth()
-            if imgui.Checkbox(u8("Time Stamp"), imgui.ImBool(settings.font.timestamp)) then settings.font.timestamp = not settings.font.timestamp end
-            if imgui.Checkbox(u8("Case Sensitivity"), imgui.ImBool(settings.font.reg)) then settings.font.reg = not settings.font.reg end
-            imgui.Text(u8("Font Flags: "))
+local _menu, _contextMenu = false, false
+
+imgui.OnInitialize(function()
+    style()
+
+    local config = imgui.ImFontConfig()
+    config.MergeMode = true
+    local glyph_ranges = imgui.GetIO().Fonts:GetGlyphRangesCyrillic()
+    local iconRanges = imgui.new.ImWchar[3](fa.min_range, fa.max_range, 0)
+    imgui.GetIO().Fonts:AddFontFromFileTTF('trebucbd.ttf', 14.0, nil, glyph_ranges)
+    imgui.GetIO().Fonts:AddFontFromFileTTF('moonloader/resource/fonts/fa-solid-900.ttf', 14.0, config, iconRanges)
+
+	imgui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true
+	imgui.GetIO().IniFilename = nil
+end)
+
+imgui.OnFrame(function() return _menu and not isGamePaused() end,
+function()
+    width, height = getScreenResolution()
+    imgui.SetNextWindowPos(imgui.ImVec2(width / 2, height / 2), imgui.Cond.Always, imgui.ImVec2(0.5, 0.5))
+    imgui.SetNextWindowSize(imgui.ImVec2(265, 470), imgui.Cond.FirstUseEver)
+    imgui.BeginCustomTitle(u8"Chat Splitter | Settings", 30, main_win, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoScrollbar)
+
+        imgui.SetCursorPos(imgui.ImVec2(65, 35))
+        if imgui.Checkbox("Enable Chat Splitter", new.bool(settings.font.show)) then settings.font.show = not settings.font.show end
+        imgui.Separator()
+        imgui.SetCursorPos(imgui.ImVec2(5, 55))
+        imgui.BeginChild("##1", imgui.ImVec2(255, 120), true)
+        imgui.PushItemWidth(100)
+            tfont = new.char[256](settings.font.name)
+            imgui.Text("Font name: ") imgui.SameLine(105)
+            if imgui.InputText('##tfont', tfont, sizeof(tfont)) then settings.font.name = u8:decode(str(tfont)) applyfont() end
+            tlinespace = new.int(settings.font.interval)
+            imgui.Text("Line spacing: ") imgui.SameLine(105)
+            if imgui.DragInt('##tlinespace', tlinespace) then settings.font.interval = tlinespace[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##1') then settings.font.interval = settings.font.interval + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##1') then settings.font.interval = settings.font.interval - 1 applyfont() end
+            tnlines = new.int(settings.font.lines)
+            imgui.Text("Number of lines: ") imgui.SameLine(105)
+            if imgui.DragInt('##tnlines', tnlines) then settings.font.lines = tnlines[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##2') then settings.font.lines = settings.font.lines + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##2') then settings.font.lines = settings.font.lines - 1 applyfont() end
+            tfsize = new.int(settings.font.size)
+            imgui.Text("Font Size: ") imgui.SameLine(105)
+            if imgui.DragInt('##tfsize', tfsize) then settings.font.size = tfsize[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##3') then settings.font.size = settings.font.size + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##3') then settings.font.size = settings.font.size - 1 applyfont() end
+            if imgui.Checkbox(u8('Timestamps'), new.bool(settings.font.timestamp)) then settings.chats.timestamp = not settings.chats.timestamp end
+        imgui.EndChild()
+        imgui.SetCursorPos(imgui.ImVec2(5, 180))
+        imgui.BeginChild("##2", imgui.ImVec2(255, 100), true)
+            imgui.Text("Font Flags:")
             imgui.BeginGroup()
-                local i = 1
-                for k, v in pairs(checkboxes) do
-                    if k ~= "NONE" then
-                        if i % 2 == 0 or i == #flags/2 then imgui.SameLine(100) end
-                        if imgui.Checkbox(k:upper(), v) then
-                            settings.flag[k] = v.v
-                            flag = 0
-                            for k, v in pairs(settings.flag) do
-                                if v then
-                                    flag = flag + flags[k]
-                                end
+            local i = 1
+            for k, v in pairs(checkboxes) do
+                if k ~= "NONE" then
+                    if i % 2 == 0 or i == #flags/2 then imgui.SameLine(100) end
+                    if imgui.Checkbox(k:upper(), v) then
+                        settings.flag[k] = v.v
+                        flag = 0
+                        for k, v in pairs(settings.flag) do
+                            if v then
+                                flag = flag + flags[k]
                             end
-                            font = renderCreateFont(settings.font.name, settings.font.size, flag)
                         end
-                        i = i + 1
+                        applyfont()
                     end
-                end
-            imgui.EndGroup()
-            imgui.Spacing()
-
-            if imgui.Button('Chat Selection Menu', imgui.ImVec2(-1, 25)) then
-                imgui.OpenPopup('chatselect')
-            end
-            if imgui.BeginPopup('chatselect') then
-                imgui.Text("Select which chat to split:")
-                imgui.Separator()
-                imgui.Spacing()
-                imgui.Text("Staff Chats:")
-                imgui.Spacing()
-                if imgui.Checkbox(u8('Community Chat'), imgui.ImBool(settings.chats.com)) then settings.chats.com = not settings.chats.com end
-                if imgui.Checkbox(u8('Helper Chat'), imgui.ImBool(settings.chats.helper)) then settings.chats.helper = not settings.chats.helper end
-                if imgui.Checkbox(u8('Newbie Chat'), imgui.ImBool(settings.chats.newbie)) then settings.chats.newbie = not settings.chats.newbie end
-                if imgui.Checkbox(u8('Admin Chat'), imgui.ImBool(settings.chats.admin)) then settings.chats.admin = not settings.chats.admin end
-                if imgui.IsItemHovered() then imgui.SetTooltip('This includes all admin related chats.') end
-                imgui.Spacing()
-                imgui.Separator()
-                imgui.Spacing()
-                imgui.Text("Faction Chats:")
-                if imgui.Checkbox(u8('Faction Radio (r)'), imgui.ImBool(settings.chats.facr)) then settings.chats.facr = not settings.chats.facr end
-                if imgui.Checkbox(u8('Department Radio (d)'), imgui.ImBool(settings.chats.facd)) then settings.chats.facd = not settings.chats.facd end
-                if imgui.IsItemHovered() then imgui.SetTooltip('This includes hospital wanted alerts.') end
-                save()
-                imgui.EndPopup()
-            end
-
-            if imgui.Button('Reposition', imgui.ImVec2(-1, 25)) then
-                changePos = true
-                imgui_window.bEnable.v = false
-            end
-            if imgui.Button('Clear extra chat', imgui.ImVec2(-1, 25)) then
-                renderMessages = {}
-            end
-            if imgui.Button('Save Config', imgui.ImVec2(-1, 25)) then save() sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} Config Saved!", script.this.name), -1) end
-            if imgui.Button('Update', imgui.ImVec2(100, 25)) then update_script(true, true, false, false) end
-            imgui.SameLine(nil, 10)
-            if imgui.Checkbox(u8('Auto Update'), imgui.ImBool(settings.autoupdate)) then settings.autoupdate = not settings.autoupdate end
-            imgui.Spacing()
-            imgui.TextDisabled("Author: Visage A.K.A. Ishaan Dunne")
-            imgui.SetNextWindowSize(imgui.ImVec2(655, imgui.GetWindowSize().y))
-            imgui.SetNextWindowPos(imgui.ImVec2(imgui.GetWindowPos().x + imgui.GetWindowSize().x + 10, imgui.GetWindowPos().y))
-            
-        imgui.End()
-    end
-    if contextMenu.v then
-        imgui.SetNextWindowSize(imgui.ImVec2(115, 70))
-        imgui.SetNextWindowPos(imgui.ImVec2(cMsg[2], cMsg[3]))
-        imgui.Begin("##cm", _, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize)
-            if imgui.Button(u8("Delete"), imgui.ImVec2(100, 25)) then
-                table.remove(renderMessages, cMsg[1])
-                cMsg = {}
-                contextMenu.v = false
-            end
-            if imgui.Button(u8("Insert into chat"), imgui.ImVec2(100, 25)) then
-                sampSetChatInputText(renderMessages[cMsg[1]][2])
-                cMsg = {}
-                contextMenu.v = false
-            end
-            if isKeyJustPressed(0x01) then
-                local x, y = getCursorPos()
-                if x < cMsg[2] or x > cMsg[2] + 110 and y < imgui.GetWindowPos().y or y > imgui.GetWindowPos().y + 70 then
-                    contextMenu.v = false
+                    i = i + 1
                 end
             end
-        imgui.End()
-    end
-end
+        imgui.EndGroup()
+    imgui.EndChild()
+    imgui.SetCursorPos(imgui.ImVec2(5, 285))
+    imgui.BeginChild("##3", imgui.ImVec2(255, 160), true)
+        if imgui.Button(fa.ICON_FA_CLIPBOARD_CHECK .. u8' Chat Selection Menu', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('chatselect') end
+        if imgui.BeginPopup('chatselect') then
+                imgui.BeginChild("##4", imgui.ImVec2(255, 240), true)
+                    imgui.Text("Select which chat to split:")
+                    imgui.Separator()
+                    imgui.Spacing()
+                    imgui.Text("Staff Chats:")
+                    imgui.Spacing()
+                    if imgui.Checkbox(u8('Community Chat'), new.bool(settings.chats.com)) then settings.chats.com = not settings.chats.com end
+                    if imgui.Checkbox(u8('Helper Chat'), new.bool(settings.chats.helper)) then settings.chats.helper = not settings.chats.helper end
+                    if imgui.Checkbox(u8('Newbie Chat'), new.bool(settings.chats.newbie)) then settings.chats.newbie = not settings.chats.newbie end
+                    if imgui.Checkbox(u8('Admin Chat'), new.bool(settings.chats.admin)) then settings.chats.admin = not settings.chats.admin end
+                    if imgui.IsItemHovered() then imgui.SetTooltip('This includes all admin related chats.') end
+                    imgui.Spacing()
+                    imgui.Separator()
+                    imgui.Spacing()
+                    imgui.Text("Faction Chats:")
+                    if imgui.Checkbox(u8('Faction Radio (r)'), new.bool(settings.chats.facr)) then settings.chats.facr = not settings.chats.facr end
+                    if imgui.Checkbox(u8('Department Radio (d)'), new.bool(settings.chats.facd)) then settings.chats.facd = not settings.chats.facd end
+                    if imgui.IsItemHovered() then imgui.SetTooltip('This includes hospital wanted alerts.') end
+                    save()
+                imgui.EndChild()
+            imgui.EndPopup()
+        end
+        if imgui.Button(fa.ICON_FA_ARROWS_ALT .. u8' Reposition', imgui.ImVec2(-1, 25)) then changePos = true _menu = false end
+        if imgui.Button(fa.ICON_FA_TRASH .. u8' Clear extra chat', imgui.ImVec2(-1, 25)) then renderMessages = {} end
+        if imgui.Button(fa.ICON_FA_SAVE .. u8' Save Config', imgui.ImVec2(-1, 25)) then save() sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} Config Saved!", script.this.name), -1) end
+        if imgui.Button(fa.ICON_FA_COG .. u8' Update Settings', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('updatemenu') end
+        if imgui.BeginPopup('updatemenu') then
+            imgui.BeginChild("##5", imgui.ImVec2(255, 90), true)
+            if imgui.Button(fa.ICON_FA_SYNC .. u8' Update', imgui.ImVec2(-1, 25)) then update_script(true, true, false, false) end
+            if imgui.IsItemHovered() then imgui.SetTooltip('This will check for updates, if found will download it.') end
+            if imgui.Button(fa.ICON_FA_DOWNLOAD .. u8' Force Update', imgui.ImVec2(-1, 25)) then update_script(false, false, true, false) end
+            if imgui.Checkbox(u8('Auto Update'), new.bool(settings.autoupdate)) then settings.autoupdate = not settings.autoupdate end
+            imgui.EndChild()
+        imgui.EndPopup()
+        end
+        imgui.EndChild()
+        imgui.SetCursorPos(imgui.ImVec2(30, 450))
+        imgui.TextDisabled("Author: Visage A.K.A. Ishaan Dunne")
+    imgui.End()
+end)
+
+imgui.OnFrame(function() return _contextMenu and not isGamePaused() end,
+function()
+    imgui.SetNextWindowPos(imgui.ImVec2(cMsg[2], cMsg[3]))
+    imgui.Begin("##cm", _, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize)
+        if imgui.Button(u8("Delete"), imgui.ImVec2(100, 25)) then table.remove(renderMessages, cMsg[1]) cMsg = {} _contextMenu = false end
+        if imgui.Button(u8("Insert into chat"), imgui.ImVec2(100, 25)) then sampSetChatInputText(renderMessages[cMsg[1]][2]) cMsg = {} _contextMenu = false end
+        if isKeyJustPressed(0x01) then
+            local x, y = getCursorPos()
+            if x < cMsg[2] or x > cMsg[2] + 110 and y < imgui.GetWindowPos().y or y > imgui.GetWindowPos().y + 70 then
+                _contextMenu = false
+            end
+        end
+    imgui.End()
+end)
 
 function main()
     if not isSampfuncsLoaded() or not isSampLoaded() then return end
     while not isSampAvailable() do wait(100) end
-    showCursor(false)
     for k, v in pairs(settings.flag) do
         if v then
             flag = flag + flags[k]
         end
     end
-    font = renderCreateFont(settings.font.name, settings.font.size, flag)
-    sampRegisterChatCommand("chatsplit", function()
-        imgui_window.bEnable.v = not imgui_window.bEnable.v
-    end)
+    applyfont()
+    sampRegisterChatCommand("chatsplit", function() _menu = not _menu end)
     if settings.autoupdate then update_script(true, false, false, false) else update_script(false, false, false, true) end
     sampAddChatMessage("{DFBD68}Chat Splitter by {FFFF00}Visage. {FF0000}[/chatsplit].", -1)
-    sampRegisterChatCommand("csforceupdate", function() update_script(false, false, true, false) end)
     while true do
         wait(0)
         if settings.font.show and sampIsChatVisible() then
@@ -277,7 +216,7 @@ function main()
                             else
                                 cMsg = {k, mx, my}
                             end
-                            contextMenu.v = true
+                            _contextMenu = true
                         end
                     end
                     renderFontDrawText(font, text, settings.font.x, y, bit.bor(v[1], 0xFF000000))
@@ -290,12 +229,11 @@ function main()
             settings.font.x, settings.font.y = getCursorPos()
             if isKeyJustPressed(0x01) then
                 changePos = false
-                imgui_window.bEnable.v = true
+                _menu = true
                 sampToggleCursor(false)
                 save()
             end
         end
-        imgui.Process = imgui_window.bEnable.v or contextMenu.v
     end
 end
 
@@ -303,14 +241,6 @@ function onScriptTerminate(s, q)
     if s == thisScript() then
         save()
     end
-end
-
-function join_argb(a, r, g, b) -- by FYP
-    local argb = b  -- b
-    argb = bit.bor(argb, bit.lshift(g, 8))  -- g
-    argb = bit.bor(argb, bit.lshift(r, 16)) -- r
-    argb = bit.bor(argb, bit.lshift(a, 24)) -- a
-    return argb
 end
 
 function imgui.CustomButton(name, color, colorHovered, colorActive, size)
@@ -322,6 +252,31 @@ function imgui.CustomButton(name, color, colorHovered, colorActive, size)
     local result = imgui.Button(name, size)
     imgui.PopStyleColor(3)
     return result
+end
+
+function imgui.BeginCustomTitle(title, titleSizeY, var, flags)
+    imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(0, 0))
+    imgui.PushStyleVarFloat(imgui.StyleVar.WindowBorderSize, 0)
+    imgui.Begin(title, var, imgui.WindowFlags.NoTitleBar + (flags or 0))
+    imgui.SetCursorPos(imgui.ImVec2(0, 0))
+    local p = imgui.GetCursorScreenPos()
+    imgui.GetWindowDrawList():AddRectFilled(p, imgui.ImVec2(p.x + imgui.GetWindowSize().x, p.y + titleSizeY), imgui.GetColorU32Vec4(imgui.GetStyle().Colors[imgui.Col.TitleBgActive]), imgui.GetStyle().WindowRounding, 1 + 2)
+    imgui.SetCursorPos(imgui.ImVec2(imgui.GetWindowSize().x / 2 - imgui.CalcTextSize(title).x / 2, titleSizeY / 2 - imgui.CalcTextSize(title).y / 2))
+    imgui.Text(title)
+    imgui.SetCursorPos(imgui.ImVec2(imgui.GetWindowSize().x - (titleSizeY - 10) - 5, 5))
+    imgui.PushStyleVarFloat(imgui.StyleVar.FrameRounding, imgui.GetStyle().WindowRounding)
+    if imgui.Button('X##CLOSEBUTTON.WINDOW.'..title, imgui.ImVec2(titleSizeY - 10, titleSizeY - 10)) then _menu = false end
+    imgui.SetCursorPos(imgui.ImVec2(5, titleSizeY + 5))
+    imgui.PopStyleVar(3)
+    imgui.PushStyleVarVec2(imgui.StyleVar.WindowPadding, imgui.ImVec2(5, 5))
+end
+
+function join_argb(a, r, g, b) -- by FYP
+    local argb = b  -- b
+    argb = bit.bor(argb, bit.lshift(g, 8))  -- g
+    argb = bit.bor(argb, bit.lshift(r, 16)) -- r
+    argb = bit.bor(argb, bit.lshift(a, 24)) -- a
+    return argb
 end
 
 function events.onServerMessage(clr, msg)
@@ -496,6 +451,10 @@ function rainbow(speed, alpha)
     return math.floor(math.sin(os.clock() * speed) * 127 + 128), math.floor(math.sin(os.clock() * speed + 2) * 127 + 128), math.floor(math.sin(os.clock() * speed + 4) * 127 + 128), alpha
 end
 
+function applyfont()
+    font = renderCreateFont(settings.font.name, settings.font.size, flag)
+end
+
 function save()
     inicfg.save(settings, 'ChatSplitter.ini')
 end
@@ -547,4 +506,88 @@ function update_script(norupdate, noupdatecheck, forceupdate, updaterem)
             end
         end
     end
+end
+
+function style()
+    imgui.SwitchContext()
+    --==[ STYLE ]==--
+    imgui.GetStyle().WindowPadding = imgui.ImVec2(8, 8)
+    imgui.GetStyle().FramePadding = imgui.ImVec2(5, 2)
+    imgui.GetStyle().ItemSpacing = imgui.ImVec2(5, 5)
+    imgui.GetStyle().ItemInnerSpacing = imgui.ImVec2(4, 4)
+    imgui.GetStyle().TouchExtraPadding = imgui.ImVec2(5, 5)
+    imgui.GetStyle().IndentSpacing = 5
+    imgui.GetStyle().ScrollbarSize = 10
+    imgui.GetStyle().GrabMinSize = 10
+
+    --==[ BORDER ]==--
+    imgui.GetStyle().WindowBorderSize = 0
+    imgui.GetStyle().ChildBorderSize = 1
+    imgui.GetStyle().PopupBorderSize = 0
+    imgui.GetStyle().FrameBorderSize = 0
+    imgui.GetStyle().TabBorderSize = 0
+
+    --==[ ROUNDING ]==--
+    imgui.GetStyle().WindowRounding = 5
+    imgui.GetStyle().ChildRounding = 5
+    imgui.GetStyle().FrameRounding = 5
+    imgui.GetStyle().PopupRounding = 5
+    imgui.GetStyle().ScrollbarRounding = 5
+    imgui.GetStyle().GrabRounding = 5
+    imgui.GetStyle().TabRounding = 5
+
+    --==[ ALIGN ]==--
+    imgui.GetStyle().WindowTitleAlign = imgui.ImVec2(0.5, 0.5)
+    imgui.GetStyle().ButtonTextAlign = imgui.ImVec2(0.5, 0.5)
+    imgui.GetStyle().SelectableTextAlign = imgui.ImVec2(0.5, 0.5)
+    
+    --==[ COLORS ]==--
+    imgui.GetStyle().Colors[imgui.Col.Text]                   = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TextDisabled]           = imgui.ImVec4(0.50, 0.50, 0.50, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.WindowBg]               = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ChildBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.PopupBg]                = imgui.ImVec4(0.07, 0.07, 0.07, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.Border]                 = imgui.ImVec4(0.25, 0.25, 0.26, 0.54)
+    imgui.GetStyle().Colors[imgui.Col.BorderShadow]           = imgui.ImVec4(0.00, 0.00, 0.00, 0.00)
+    imgui.GetStyle().Colors[imgui.Col.FrameBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.FrameBgHovered]         = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.FrameBgActive]          = imgui.ImVec4(0.25, 0.25, 0.26, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TitleBg]                = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TitleBgActive]          = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TitleBgCollapsed]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.MenuBarBg]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ScrollbarBg]            = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ScrollbarGrab]          = imgui.ImVec4(0.00, 0.00, 0.00, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabHovered]   = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ScrollbarGrabActive]    = imgui.ImVec4(0.51, 0.51, 0.51, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.CheckMark]              = imgui.ImVec4(1.00, 1.00, 1.00, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.SliderGrab]             = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.SliderGrabActive]       = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.Button]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ButtonHovered]          = imgui.ImVec4(0.21, 0.20, 0.20, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ButtonActive]           = imgui.ImVec4(0.41, 0.41, 0.41, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.Header]                 = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.HeaderHovered]          = imgui.ImVec4(0.20, 0.20, 0.20, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.HeaderActive]           = imgui.ImVec4(0.47, 0.47, 0.47, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.Separator]              = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.SeparatorHovered]       = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.SeparatorActive]        = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.ResizeGrip]             = imgui.ImVec4(1.00, 1.00, 1.00, 0.25)
+    imgui.GetStyle().Colors[imgui.Col.ResizeGripHovered]      = imgui.ImVec4(1.00, 1.00, 1.00, 0.67)
+    imgui.GetStyle().Colors[imgui.Col.ResizeGripActive]       = imgui.ImVec4(1.00, 1.00, 1.00, 0.95)
+    imgui.GetStyle().Colors[imgui.Col.Tab]                    = imgui.ImVec4(0.12, 0.12, 0.12, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TabHovered]             = imgui.ImVec4(0.28, 0.28, 0.28, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TabActive]              = imgui.ImVec4(0.30, 0.30, 0.30, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TabUnfocused]           = imgui.ImVec4(0.07, 0.10, 0.15, 0.97)
+    imgui.GetStyle().Colors[imgui.Col.TabUnfocusedActive]     = imgui.ImVec4(0.14, 0.26, 0.42, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.PlotLines]              = imgui.ImVec4(0.61, 0.61, 0.61, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.PlotLinesHovered]       = imgui.ImVec4(1.00, 0.43, 0.35, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.PlotHistogram]          = imgui.ImVec4(0.90, 0.70, 0.00, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.PlotHistogramHovered]   = imgui.ImVec4(1.00, 0.60, 0.00, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.TextSelectedBg]         = imgui.ImVec4(1.00, 0.00, 0.00, 0.35)
+    imgui.GetStyle().Colors[imgui.Col.DragDropTarget]         = imgui.ImVec4(1.00, 1.00, 0.00, 0.90)
+    imgui.GetStyle().Colors[imgui.Col.NavHighlight]           = imgui.ImVec4(0.26, 0.59, 0.98, 1.00)
+    imgui.GetStyle().Colors[imgui.Col.NavWindowingHighlight]  = imgui.ImVec4(1.00, 1.00, 1.00, 0.70)
+    imgui.GetStyle().Colors[imgui.Col.NavWindowingDimBg]      = imgui.ImVec4(0.80, 0.80, 0.80, 0.20)
+    imgui.GetStyle().Colors[imgui.Col.ModalWindowDimBg]       = imgui.ImVec4(0.00, 0.00, 0.00, 0.70)
 end
