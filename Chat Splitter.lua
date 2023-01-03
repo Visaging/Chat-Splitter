@@ -1,8 +1,8 @@
 script_name("Chat Splitter")
 script_author("Visage A.K.A. Ishaan Dunne")
 
-local script_version = 1.73
-local script_version_text = '1.73'
+local script_version = 1.74
+local script_version_text = '1.74'
 
 local imgui, ffi = require 'mimgui', require 'ffi'
 local new, str, sizeof = imgui.new, ffi.string, ffi.sizeof
@@ -53,7 +53,6 @@ local settings = inicfg.load({
 local changePos = false
 local flag = 0
 local checkboxes = {}
-for k, v in pairs(settings.flag) do checkboxes[k] = new.bool(v) end
 local renderMessages = {}
 local cMsg = 0
 
@@ -98,18 +97,19 @@ function()
             tfsize = new.int(settings.font.size)
             imgui.Text("Font Size: ") imgui.SameLine(105)
             if imgui.DragInt('##tfsize', tfsize) then settings.font.size = tfsize[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##3') then settings.font.size = settings.font.size + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##3') then settings.font.size = settings.font.size - 1 applyfont() end
-            if imgui.Checkbox(u8('Timestamps'), new.bool(settings.font.timestamp)) then settings.chats.timestamp = not settings.chats.timestamp end
+            if imgui.Checkbox(u8('Timestamps'), new.bool(settings.font.timestamp)) then settings.font.timestamp = not settings.font.timestamp end
         imgui.EndChild()
         imgui.SetCursorPos(imgui.ImVec2(5, 180))
         imgui.BeginChild("##2", imgui.ImVec2(255, 100), true)
             imgui.Text("Font Flags:")
             imgui.BeginGroup()
+            for k, v in pairs(settings.flag) do checkboxes[k] = new.bool(v) end
             local i = 1
             for k, v in pairs(checkboxes) do
                 if k ~= "NONE" then
                     if i % 2 == 0 or i == #flags/2 then imgui.SameLine(100) end
                     if imgui.Checkbox(k:upper(), v) then
-                        settings.flag[k] = v.v
+                        settings.flag[k] = not settings.flag[k]
                         flag = 0
                         for k, v in pairs(settings.flag) do
                             if v then
