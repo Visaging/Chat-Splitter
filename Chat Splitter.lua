@@ -1,8 +1,8 @@
 script_name("Chat Splitter")
 script_author("Visage A.K.A. Ishaan Dunne")
 
-local script_version = 1.74
-local script_version_text = '1.74'
+local script_version = 1.75
+local script_version_text = '1.75'
 
 local imgui, ffi = require 'mimgui', require 'ffi'
 local new, str, sizeof = imgui.new, ffi.string, ffi.sizeof
@@ -46,6 +46,10 @@ local settings = inicfg.load({
         admin     = false,
         facr      = false,
         facd      = false,
+        family    = false,
+        donator   = false,
+        global    = false,
+        portable  = false,
     },
     autoupdate = false,
 }, 'ChatSplitter.ini')
@@ -127,8 +131,16 @@ function()
     imgui.BeginChild("##3", imgui.ImVec2(255, 160), true)
         if imgui.Button(fa.ICON_FA_CLIPBOARD_CHECK .. u8' Chat Selection Menu', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('chatselect') end
         if imgui.BeginPopup('chatselect') then
-                imgui.BeginChild("##4", imgui.ImVec2(255, 240), true)
+                imgui.BeginChild("##4", imgui.ImVec2(255, 310), true)
                     imgui.Text("Select which chat to split:")
+                    imgui.Separator()
+                    imgui.Spacing()
+                    imgui.Text("General Chats:")
+                    imgui.Spacing()
+                    if imgui.Checkbox(u8('Global Chat'), new.bool(settings.chats.global)) then settings.chats.global = not settings.chats.global end
+                    if imgui.Checkbox(u8('Donator Chat'), new.bool(settings.chats.donator)) then settings.chats.donator = not settings.chats.donator end
+                    if imgui.Checkbox(u8('Portable Radio Chat'), new.bool(settings.chats.portable)) then settings.chats.portable = not settings.chats.portable end
+                    imgui.Spacing()
                     imgui.Separator()
                     imgui.Spacing()
                     imgui.Text("Staff Chats:")
@@ -141,10 +153,12 @@ function()
                     imgui.Spacing()
                     imgui.Separator()
                     imgui.Spacing()
-                    imgui.Text("Faction Chats:")
-                    if imgui.Checkbox(u8('Faction Radio (r)'), new.bool(settings.chats.facr)) then settings.chats.facr = not settings.chats.facr end
-                    if imgui.Checkbox(u8('Department Radio (d)'), new.bool(settings.chats.facd)) then settings.chats.facd = not settings.chats.facd end
+                    imgui.Text("Faction/Gang Chats:")
+                    imgui.Spacing()
+                    if imgui.Checkbox(u8('Faction Radio'), new.bool(settings.chats.facr)) then settings.chats.facr = not settings.chats.facr end
+                    if imgui.Checkbox(u8('Department Radio'), new.bool(settings.chats.facd)) then settings.chats.facd = not settings.chats.facd end
                     if imgui.IsItemHovered() then imgui.SetTooltip('This includes hospital wanted alerts.') end
+                    if imgui.Checkbox(u8('Family Chat'), new.bool(settings.chats.family)) then settings.chats.family = not settings.chats.family end
                     save()
                 imgui.EndChild()
             imgui.EndPopup()
@@ -437,6 +451,42 @@ function events.onServerMessage(clr, msg)
         end
         if settings.chats.facd and clr == -2686902 then
             if msg:match("** .**") or msg:match(".+has reported.+as a wanted person.") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+        end
+        if settings.chats.portable and clr == 1845194239 then
+            if msg:match("**.Radio %(.+% kHz%).%**.+%:") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+        end
+        if settings.chats.global and clr == -5963606 then
+            if msg:match("%(%( .*") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+        end
+        if settings.chats.family and clr == 33357768 then
+            if msg:match("** .**") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+        end
+        if settings.chats.donator and clr == -1210979584 then
+            if msg:match("%(%( .*") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
