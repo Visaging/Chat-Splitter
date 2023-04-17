@@ -1,8 +1,8 @@
 script_name("Chat Splitter")
 script_author("Visage A.K.A. Ishaan Dunne")
 
-local script_version = 1.75
-local script_version_text = '1.75'
+local script_version = 1.76
+local script_version_text = '1.76'
 
 local imgui, ffi = require 'mimgui', require 'ffi'
 local new, str, sizeof = imgui.new, ffi.string, ffi.sizeof
@@ -157,7 +157,7 @@ function()
                     imgui.Spacing()
                     if imgui.Checkbox(u8('Faction Radio'), new.bool(settings.chats.facr)) then settings.chats.facr = not settings.chats.facr end
                     if imgui.Checkbox(u8('Department Radio'), new.bool(settings.chats.facd)) then settings.chats.facd = not settings.chats.facd end
-                    if imgui.IsItemHovered() then imgui.SetTooltip('This includes hospital wanted alerts.') end
+                    if imgui.IsItemHovered() then imgui.SetTooltip('This includes hospital wanted alert(s).') end
                     if imgui.Checkbox(u8('Family Chat'), new.bool(settings.chats.family)) then settings.chats.family = not settings.chats.family end
                     save()
                 imgui.EndChild()
