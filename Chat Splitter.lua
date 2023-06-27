@@ -1,8 +1,8 @@
 script_name("Chat Splitter")
 script_author("Visage A.K.A. Ishaan Dunne")
 
-local script_version = 1.76
-local script_version_text = '1.76'
+local script_version = 1.77
+local script_version_text = '1.77'
 
 local imgui, ffi = require 'mimgui', require 'ffi'
 local new, str, sizeof = imgui.new, ffi.string, ffi.sizeof
