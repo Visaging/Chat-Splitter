@@ -16,6 +16,7 @@ local dlstatus = require('moonloader').download_status
 local script_path = thisScript().path
 local script_url = "https://raw.githubusercontent.com/Visaging/Chat-Splitter/main/Chat%20Splitter.lua"
 local update_url = "https://raw.githubusercontent.com/Visaging/Chat-Splitter/main/Chat%20Splitter.txt"
+local updatelogs_url = "https://raw.githubusercontent.com/Visaging/Chat-Splitter/main/update_logs.txt"
 local flags = require 'moonloader'.font_flag
 local events = require 'samp.events'
 
@@ -60,7 +61,7 @@ local checkboxes = {}
 local renderMessages = {}
 local cMsg = 0
 
-local _menu, _contextMenu = false, false
+local _menu, _contextMenu, updatelogs = false, false, false
 
 imgui.OnInitialize(function()
     style()
@@ -80,105 +81,122 @@ imgui.OnFrame(function() return _menu and not isGamePaused() end,
 function()
     width, height = getScreenResolution()
     imgui.SetNextWindowPos(imgui.ImVec2(width / 2, height / 2), imgui.Cond.Always, imgui.ImVec2(0.5, 0.5))
-    imgui.SetNextWindowSize(imgui.ImVec2(265, 470), imgui.Cond.FirstUseEver)
+    imgui.SetNextWindowSize(imgui.ImVec2(275, 530), imgui.Cond.FirstUseEver)
     imgui.BeginCustomTitle(u8"Chat Splitter | Settings", 30, main_win, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoScrollbar)
 
-        imgui.SetCursorPos(imgui.ImVec2(65, 35))
-        if imgui.Checkbox("Enable Chat Splitter", new.bool(settings.font.show)) then settings.font.show = not settings.font.show end
-        imgui.Separator()
-        imgui.SetCursorPos(imgui.ImVec2(5, 55))
-        imgui.BeginChild("##1", imgui.ImVec2(255, 120), true)
-        imgui.PushItemWidth(100)
-            tfont = new.char[256](settings.font.name)
-            imgui.Text("Font name: ") imgui.SameLine(105)
-            if imgui.InputText('##tfont', tfont, sizeof(tfont)) then settings.font.name = u8:decode(str(tfont)) applyfont() end
-            tlinespace = new.int(settings.font.interval)
-            imgui.Text("Line spacing: ") imgui.SameLine(105)
-            if imgui.DragInt('##tlinespace', tlinespace) then settings.font.interval = tlinespace[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##1') then settings.font.interval = settings.font.interval + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##1') then settings.font.interval = settings.font.interval - 1 applyfont() end
-            tnlines = new.int(settings.font.lines)
-            imgui.Text("Number of lines: ") imgui.SameLine(105)
-            if imgui.DragInt('##tnlines', tnlines) then settings.font.lines = tnlines[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##2') then settings.font.lines = settings.font.lines + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##2') then settings.font.lines = settings.font.lines - 1 applyfont() end
-            tfsize = new.int(settings.font.size)
-            imgui.Text("Font Size: ") imgui.SameLine(105)
-            if imgui.DragInt('##tfsize', tfsize) then settings.font.size = tfsize[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##3') then settings.font.size = settings.font.size + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##3') then settings.font.size = settings.font.size - 1 applyfont() end
-            if imgui.Checkbox(u8('Timestamps'), new.bool(settings.font.timestamp)) then settings.font.timestamp = not settings.font.timestamp end
-        imgui.EndChild()
-        imgui.SetCursorPos(imgui.ImVec2(5, 180))
-        imgui.BeginChild("##2", imgui.ImVec2(255, 100), true)
-            imgui.Text("Font Flags:")
-            imgui.BeginGroup()
-            for k, v in pairs(settings.flag) do checkboxes[k] = new.bool(v) end
-            local i = 1
-            for k, v in pairs(checkboxes) do
-                if k ~= "NONE" then
-                    if i % 2 == 0 or i == #flags/2 then imgui.SameLine(100) end
-                    if imgui.Checkbox(k:upper(), v) then
-                        settings.flag[k] = not settings.flag[k]
-                        flag = 0
-                        for k, v in pairs(settings.flag) do
-                            if v then
-                                flag = flag + flags[k]
-                            end
-                        end
-                        applyfont()
-                    end
-                    i = i + 1
-                end
-            end
-        imgui.EndGroup()
-    imgui.EndChild()
-    imgui.SetCursorPos(imgui.ImVec2(5, 285))
-    imgui.BeginChild("##3", imgui.ImVec2(255, 160), true)
-        if imgui.Button(fa.ICON_FA_CLIPBOARD_CHECK .. u8' Chat Selection Menu', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('chatselect') end
-        if imgui.BeginPopup('chatselect') then
-                imgui.BeginChild("##4", imgui.ImVec2(255, 310), true)
-                    imgui.Text("Select which chat to split:")
-                    imgui.Separator()
-                    imgui.Spacing()
-                    imgui.Text("General Chats:")
-                    imgui.Spacing()
-                    if imgui.Checkbox(u8('Global Chat'), new.bool(settings.chats.global)) then settings.chats.global = not settings.chats.global end
-                    if imgui.Checkbox(u8('Donator Chat'), new.bool(settings.chats.donator)) then settings.chats.donator = not settings.chats.donator end
-                    if imgui.Checkbox(u8('Portable Radio Chat'), new.bool(settings.chats.portable)) then settings.chats.portable = not settings.chats.portable end
-                    imgui.Spacing()
-                    imgui.Separator()
-                    imgui.Spacing()
-                    imgui.Text("Staff Chats:")
-                    imgui.Spacing()
-                    if imgui.Checkbox(u8('Community Chat'), new.bool(settings.chats.com)) then settings.chats.com = not settings.chats.com end
-                    if imgui.Checkbox(u8('Helper Chat'), new.bool(settings.chats.helper)) then settings.chats.helper = not settings.chats.helper end
-                    if imgui.Checkbox(u8('Newbie Chat'), new.bool(settings.chats.newbie)) then settings.chats.newbie = not settings.chats.newbie end
-                    if imgui.Checkbox(u8('Admin Chat'), new.bool(settings.chats.admin)) then settings.chats.admin = not settings.chats.admin end
-                    if imgui.IsItemHovered() then imgui.SetTooltip('This includes all admin related chats.') end
-                    imgui.Spacing()
-                    imgui.Separator()
-                    imgui.Spacing()
-                    imgui.Text("Faction/Gang Chats:")
-                    imgui.Spacing()
-                    if imgui.Checkbox(u8('Faction Radio'), new.bool(settings.chats.facr)) then settings.chats.facr = not settings.chats.facr end
-                    if imgui.Checkbox(u8('Department Radio'), new.bool(settings.chats.facd)) then settings.chats.facd = not settings.chats.facd end
-                    if imgui.IsItemHovered() then imgui.SetTooltip('This includes hospital wanted alert(s).') end
-                    if imgui.Checkbox(u8('Family Chat'), new.bool(settings.chats.family)) then settings.chats.family = not settings.chats.family end
-                    save()
-                imgui.EndChild()
-            imgui.EndPopup()
-        end
-        if imgui.Button(fa.ICON_FA_ARROWS_ALT .. u8' Reposition', imgui.ImVec2(-1, 25)) then changePos = true _menu = false end
-        if imgui.Button(fa.ICON_FA_TRASH .. u8' Clear extra chat', imgui.ImVec2(-1, 25)) then renderMessages = {} end
-        if imgui.Button(fa.ICON_FA_SAVE .. u8' Save Config', imgui.ImVec2(-1, 25)) then save() sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} Config Saved!", script.this.name), -1) end
-        if imgui.Button(fa.ICON_FA_COG .. u8' Update Settings', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('updatemenu') end
-        if imgui.BeginPopup('updatemenu') then
-            imgui.BeginChild("##5", imgui.ImVec2(255, 90), true)
-            if imgui.Button(fa.ICON_FA_SYNC .. u8' Update', imgui.ImVec2(-1, 25)) then update_script(true, true, false, false) end
-            if imgui.IsItemHovered() then imgui.SetTooltip('This will check for updates, if found will download it.') end
-            if imgui.Button(fa.ICON_FA_DOWNLOAD .. u8' Force Update', imgui.ImVec2(-1, 25)) then update_script(false, false, true, false) end
-            if imgui.Checkbox(u8('Auto Update'), new.bool(settings.autoupdate)) then settings.autoupdate = not settings.autoupdate end
+        imgui.BeginChild("##69", imgui.ImVec2(265, 490), true)
+            imgui.SetCursorPos(imgui.ImVec2(65, 5))
+            if imgui.Checkbox("Enable Chat Splitter", new.bool(settings.font.show)) then settings.font.show = not settings.font.show end
+            imgui.Separator()
+            imgui.SetCursorPos(imgui.ImVec2(5, 35))
+            imgui.BeginChild("##1", imgui.ImVec2(255, 120), true)
+            imgui.PushItemWidth(100)
+                tfont = new.char[256](settings.font.name)
+                imgui.Text("Font name: ") imgui.SameLine(105)
+                if imgui.InputText('##tfont', tfont, sizeof(tfont)) then settings.font.name = u8:decode(str(tfont)) applyfont() end
+                tlinespace = new.int(settings.font.interval)
+                imgui.Text("Line spacing: ") imgui.SameLine(105)
+                if imgui.DragInt('##tlinespace', tlinespace) then settings.font.interval = tlinespace[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##1') then settings.font.interval = settings.font.interval + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##1') then settings.font.interval = settings.font.interval - 1 applyfont() end
+                tnlines = new.int(settings.font.lines)
+                imgui.Text("Number of lines: ") imgui.SameLine(105)
+                if imgui.DragInt('##tnlines', tnlines) then settings.font.lines = tnlines[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##2') then settings.font.lines = settings.font.lines + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##2') then settings.font.lines = settings.font.lines - 1 applyfont() end
+                tfsize = new.int(settings.font.size)
+                imgui.Text("Font Size: ") imgui.SameLine(105)
+                if imgui.DragInt('##tfsize', tfsize) then settings.font.size = tfsize[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##3') then settings.font.size = settings.font.size + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##3') then settings.font.size = settings.font.size - 1 applyfont() end
+                if imgui.Checkbox(u8('Timestamps'), new.bool(settings.font.timestamp)) then settings.font.timestamp = not settings.font.timestamp end
             imgui.EndChild()
-        imgui.EndPopup()
-        end
-        imgui.EndChild()
-        imgui.SetCursorPos(imgui.ImVec2(30, 450))
+            imgui.SetCursorPos(imgui.ImVec2(5, 160))
+            imgui.BeginChild("##2", imgui.ImVec2(255, 100), true)
+                imgui.Text("Font Flags:")
+                imgui.BeginGroup()
+                for k, v in pairs(settings.flag) do checkboxes[k] = new.bool(v) end
+                local i = 1
+                for k, v in pairs(checkboxes) do
+                    if k ~= "NONE" then
+                        if i % 2 == 0 or i == #flags/2 then imgui.SameLine(100) end
+                        if imgui.Checkbox(k:upper(), v) then
+                            settings.flag[k] = not settings.flag[k]
+                            flag = 0
+                            for k, v in pairs(settings.flag) do
+                                if v then
+                                    flag = flag + flags[k]
+                                end
+                            end
+                            applyfont()
+                        end
+                        i = i + 1
+                    end
+                end
+            imgui.EndGroup()
+            imgui.EndChild()
+            imgui.SetCursorPos(imgui.ImVec2(5, 265))
+            imgui.BeginChild("##3", imgui.ImVec2(255, 190), true)
+                if imgui.Button(fa.ICON_FA_CLIPBOARD_CHECK .. u8' Chat Selection Menu', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('chatselect') end
+                if imgui.BeginPopup('chatselect') then
+                        imgui.BeginChild("##4", imgui.ImVec2(255, 310), true)
+                            imgui.Text("Select which chat to split:")
+                            imgui.Separator()
+                            imgui.Spacing()
+                            imgui.Text("General Chats:")
+                            imgui.Spacing()
+                            if imgui.Checkbox(u8('Global Chat'), new.bool(settings.chats.global)) then settings.chats.global = not settings.chats.global end
+                            if imgui.Checkbox(u8('Donator Chat'), new.bool(settings.chats.donator)) then settings.chats.donator = not settings.chats.donator end
+                            if imgui.Checkbox(u8('Portable Radio Chat'), new.bool(settings.chats.portable)) then settings.chats.portable = not settings.chats.portable end
+                            imgui.Spacing()
+                            imgui.Separator()
+                            imgui.Spacing()
+                            imgui.Text("Staff Chats:")
+                            imgui.Spacing()
+                            if imgui.Checkbox(u8('Community Chat'), new.bool(settings.chats.com)) then settings.chats.com = not settings.chats.com end
+                            if imgui.Checkbox(u8('Helper Chat'), new.bool(settings.chats.helper)) then settings.chats.helper = not settings.chats.helper end
+                            if imgui.Checkbox(u8('Newbie Chat'), new.bool(settings.chats.newbie)) then settings.chats.newbie = not settings.chats.newbie end
+                            if imgui.Checkbox(u8('Admin Chat'), new.bool(settings.chats.admin)) then settings.chats.admin = not settings.chats.admin end
+                            if imgui.IsItemHovered() then imgui.SetTooltip('This includes all admin related chats.') end
+                            imgui.Spacing()
+                            imgui.Separator()
+                            imgui.Spacing()
+                            imgui.Text("Faction/Gang Chats:")
+                            imgui.Spacing()
+                            if imgui.Checkbox(u8('Faction Radio'), new.bool(settings.chats.facr)) then settings.chats.facr = not settings.chats.facr end
+                            if imgui.Checkbox(u8('Department Radio'), new.bool(settings.chats.facd)) then settings.chats.facd = not settings.chats.facd end
+                            if imgui.IsItemHovered() then imgui.SetTooltip('This includes hospital wanted alert(s).') end
+                            if imgui.Checkbox(u8('Family Chat'), new.bool(settings.chats.family)) then settings.chats.family = not settings.chats.family end
+                            save()
+                        imgui.EndChild()
+                    imgui.EndPopup()
+                end
+                if imgui.Button(fa.ICON_FA_ARROWS_ALT .. u8' Reposition', imgui.ImVec2(-1, 25)) then changePos = true _menu = false end
+                if imgui.Button(fa.ICON_FA_TRASH .. u8' Clear extra chat', imgui.ImVec2(-1, 25)) then renderMessages = {} end
+                if imgui.Button(fa.ICON_FA_CLIPBOARD_LIST .. u8' Update Logs', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('updatelogs') end
+                if imgui.BeginPopup('updatelogs') then
+                        imgui.BeginChild("##4", imgui.ImVec2(400, 350), true)
+                            imgui.SetCursorPos(imgui.ImVec2(85, 5))
+                            imgui.Text("Update Logs - Current Version: "..script_version_text)
+                            imgui.NewLine()
+                            updatelogs_text = updatelogs:match(".+")
+                            if updatelogs_text ~= nil then
+                                imgui.Text(updatelogs_text)
+                            end
+                        imgui.EndChild()
+                    imgui.EndPopup()
+                end
+                if imgui.Button(fa.ICON_FA_SAVE .. u8' Save Config', imgui.ImVec2(-1, 25)) then save() sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} Config Saved!", script.this.name), -1) end
+                if imgui.Button(fa.ICON_FA_COG .. u8' Update Settings', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('updatemenu') end
+                if imgui.BeginPopup('updatemenu') then
+                    imgui.BeginChild("##5", imgui.ImVec2(255, 90), true)
+                        if imgui.Button(fa.ICON_FA_SYNC .. u8' Update', imgui.ImVec2(-1, 25)) then update_script(true, true, false, false) end
+                        if imgui.IsItemHovered() then imgui.SetTooltip('This will check for updates, if found will download it.') end
+                        if imgui.Button(fa.ICON_FA_DOWNLOAD .. u8' Force Update', imgui.ImVec2(-1, 25)) then update_script(false, false, true, false) end
+                        if imgui.Checkbox(u8('Auto Update'), new.bool(settings.autoupdate)) then settings.autoupdate = not settings.autoupdate end
+                    imgui.EndChild()
+                imgui.EndPopup()
+                end
+            imgui.EndChild()
+        imgui.Spacing()
+        imgui.Separator()
+        imgui.SetCursorPos(imgui.ImVec2(30, 470))
         imgui.TextDisabled("Author: Visage A.K.A. Ishaan Dunne")
+        imgui.EndChild()
     imgui.End()
 end)
 
@@ -207,6 +225,7 @@ function main()
     end
     applyfont()
     sampRegisterChatCommand("chatsplit", function() _menu = not _menu end)
+    updatelogs = https.request(updatelogs_url)
     if settings.autoupdate then update_script(true, false, false, false) else update_script(false, false, false, true) end
     sampAddChatMessage("{DFBD68}Chat Splitter by {FFFF00}Visage. {FF0000}[/chatsplit].", -1)
     while true do
