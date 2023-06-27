@@ -1,1 +1,34 @@
+[12-6-2023] PROJECT ABANDONED
+
+Version 1.77
+1. Minor bug fixes.
+2. Quality enhancement updates.
+
+Version 1.76
+1. Minor typo fix.
+
+Version 1.75
+1. Addition of family, donator and portable radio chats.
+
+Version 1.74
+1. Minor bug fixes.
+
+Version 1.73
+1. New UI design.
+2. Quality enhancement updates.
+3. Minor bug fixes.
+
+Version 1.72
+1. Addition of Faction and department radio.
+2. Quality enhancement updates.
+
+Version 1.71
+1. Minor bug fixes.
+2. Updates in UI design.
+
+Version 1.70
+1. Addition of admin chat formats.
+2. Minor fixes in default settings of the script.
+
 Version 1.69
+1. Minor fix in update menu.
