@@ -345,13 +345,20 @@ function events.onServerMessage(clr, msg)
 
             --Admin Chat (/a)
 
-            --[[if msg:match("{00FF00}* Junior Admin.+%: {FFFF91}.+") or msg:match("{FDEE00}* General Admin.+%: {FFFF91}") or msg:match("{FFAA65}* Senior Admin.+%: {FFFF91}") or msg:match("{D5010B}* Head Admin.+%: {FFFF91}") or msg:match("{AE00A8}* Management.+%: {FFFF91}") then
+            if msg:match("* Secret Admin.+%:") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
                 table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
                 return false
-            end]]
+            end
+            if msg:match("* Junior Admin.+%:") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
             if msg:match("* General Admin.+%:") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
@@ -367,6 +374,20 @@ function events.onServerMessage(clr, msg)
                 return false
             end
             if msg:match("* Head Admin.+%:") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+            if msg:match("* Ast. Management.+%:") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+            if msg:match("* Management.+%:") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
