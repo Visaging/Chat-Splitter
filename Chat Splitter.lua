@@ -507,14 +507,21 @@ function events.onServerMessage(clr, msg)
                 table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
                 return false
             end
-            if clr == -65366 and msg:match("%[BANK%].+%(IP%:%d+%) has transferred.+to.+%(IP%:%d+%).") then
+            if clr == -65366 and msg:match("Checking.+for desync, please wait") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
                 table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
                 return false
             end
-            if clr == -65366 and msg:match(".+%(IP%:%d+%) has paid.+%(IP%:%d+%).+in this session.") then
+            if clr == -65366 and msg:match("%[BANK%].+%(IP%:.+%) has transferred.+to.+%(IP%:.+%).") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+            if clr == -65366 and msg:match(".+%(IP%:.+%) has paid.+%(IP%:.+%).+in this session.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
