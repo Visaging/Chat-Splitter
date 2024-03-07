@@ -345,7 +345,28 @@ function events.onServerMessage(clr, msg)
 
             --Admin Chat (/a)
 
-            if msg:match("{00FF00}* Junior Admin.+%: {FFFF91}.+") or msg:match("{FDEE00}* General Admin.+%: {FFFF91}") or msg:match("{FFAA65}* Senior Admin.+%: {FFFF91}") or msg:match("{D5010B}* Head Admin.+%: {FFFF91}") or msg:match("{AE00A8}* Management.+%: {FFFF91}") then
+            --[[if msg:match("{00FF00}* Junior Admin.+%: {FFFF91}.+") or msg:match("{FDEE00}* General Admin.+%: {FFFF91}") or msg:match("{FFAA65}* Senior Admin.+%: {FFFF91}") or msg:match("{D5010B}* Head Admin.+%: {FFFF91}") or msg:match("{AE00A8}* Management.+%: {FFFF91}") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end]]
+            if msg:match("* General Admin.+%:") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+            if msg:match("* Senior Admin.+%:") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+            if msg:match("* Head Admin.+%:") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -448,6 +469,13 @@ function events.onServerMessage(clr, msg)
                 table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
                 return false
             end
+            if clr == -86 and msg:match(".+%(.+%) has logged in as a.+Admin.") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
 
             --Alerts
 
@@ -458,9 +486,23 @@ function events.onServerMessage(clr, msg)
                 table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
                 return false
             end
+            if clr == -65366 and msg:match("%[BANK%].+%(IP%:%d+%) has transferred.+to.+%(IP%:%d+%).") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
+            if clr == -65366 and msg:match(".+%(IP%:%d+%) has paid.+%(IP%:%d+%).+in this session.") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
         end
         if settings.chats.facr and clr == -1920073729 then
-            if msg:match("** .**") then
+            if msg:match("** ") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -469,7 +511,7 @@ function events.onServerMessage(clr, msg)
             end
         end
         if settings.chats.facd and clr == -2686902 then
-            if msg:match("** .**") or msg:match(".+has reported.+as a wanted person.") then
+            if msg:match("** ") or msg:match(".+has reported.+as a wanted person.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -487,7 +529,7 @@ function events.onServerMessage(clr, msg)
             end
         end
         if settings.chats.global and clr == -5963606 then
-            if msg:match("%(%( .*") then
+            if msg:match("%(%(") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -496,7 +538,7 @@ function events.onServerMessage(clr, msg)
             end
         end
         if settings.chats.family and clr == 33357768 then
-            if msg:match("** .**") then
+            if msg:match("** ") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
@@ -505,7 +547,7 @@ function events.onServerMessage(clr, msg)
             end
         end
         if settings.chats.donator and clr == -1210979584 then
-            if msg:match("%(%( .*") then
+            if msg:match("%(%(") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
