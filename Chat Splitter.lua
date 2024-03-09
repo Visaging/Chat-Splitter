@@ -81,10 +81,10 @@ imgui.OnFrame(function() return _menu and not isGamePaused() end,
 function()
     width, height = getScreenResolution()
     imgui.SetNextWindowPos(imgui.ImVec2(width / 2, height / 2), imgui.Cond.Always, imgui.ImVec2(0.5, 0.5))
-    imgui.SetNextWindowSize(imgui.ImVec2(275, 530), imgui.Cond.FirstUseEver)
+    imgui.SetNextWindowSize(imgui.ImVec2(275, 430), imgui.Cond.FirstUseEver)
     imgui.BeginCustomTitle(u8"Chat Splitter | Settings", 30, main_win, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoScrollbar)
 
-        imgui.BeginChild("##69", imgui.ImVec2(265, 490), true)
+        imgui.BeginChild("##69", imgui.ImVec2(265, 590), true)
             imgui.SetCursorPos(imgui.ImVec2(65, 5))
             if imgui.Checkbox("Enable Chat Splitter", new.bool(settings.font.show)) then settings.font.show = not settings.font.show end
             imgui.Separator()
@@ -92,7 +92,7 @@ function()
             imgui.BeginChild("##1", imgui.ImVec2(255, 120), true)
             imgui.PushItemWidth(100)
                 tfont = new.char[256](settings.font.name)
-                imgui.Text("Font name: ") imgui.SameLine(105)
+                imgui.TextColoredRGB("Font name: ") imgui.SameLine(105)
                 if imgui.InputText('##tfont', tfont, sizeof(tfont)) then settings.font.name = u8:decode(str(tfont)) applyfont() end
                 tlinespace = new.int(settings.font.interval)
                 imgui.Text("Line spacing: ") imgui.SameLine(105)
@@ -344,55 +344,56 @@ function events.onServerMessage(clr, msg)
         if settings.chats.admin then
 
             --Admin Chat (/a)
-
-            if msg:match("* Secret Admin.+%:") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
-                return false
-            end
-            if msg:match("* Junior Admin.+%:") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
-                return false
-            end
-            if msg:match("* General Admin.+%:") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
-                return false
-            end
-            if msg:match("* Senior Admin.+%:") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
-                return false
-            end
-            if msg:match("* Head Admin.+%:") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
-                return false
-            end
-            if msg:match("* Ast. Management.+%:") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
-                return false
-            end
-            if msg:match("* Management.+%:") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
-                return false
+            if clr == -86 then
+                if msg:match("* Secret Admin.+%:") then
+                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                    chatlog:close()
+                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    return false
+                end
+                if msg:match("* Junior Admin.+%:") then
+                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                    chatlog:close()
+                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    return false
+                end
+                if msg:match("* General Admin.+%:") then
+                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                    chatlog:close()
+                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    return false
+                end
+                if msg:match("* Senior Admin.+%:") then
+                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                    chatlog:close()
+                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    return false
+                end
+                if msg:match("* Head Admin.+%:") then
+                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                    chatlog:close()
+                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    return false
+                end
+                if msg:match("* Ast. Management.+%:") then
+                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                    chatlog:close()
+                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    return false
+                end
+                if msg:match("* Management.+%:") then
+                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                    chatlog:close()
+                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    return false
+                end
             end
 
             --Flags & Requests
@@ -535,6 +536,13 @@ function events.onServerMessage(clr, msg)
                 table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
                 return false
             end
+            if clr == -65366 and msg:match("%[ATM%].+%(IP%:.+%) has transferred.+to.+%(IP%:.+%).") then
+                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+                chatlog:close()
+                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                return false
+            end
         end
         if settings.chats.facr and clr == -1920073729 then
             if msg:match("** ") then
@@ -590,6 +598,71 @@ function events.onServerMessage(clr, msg)
                 return false
             end
         end
+    end
+end
+
+function imgui.CenterTextColoredRGB(text)
+    imgui.SetCursorPosX(imgui.GetWindowSize().x / 2 - imgui.CalcTextSize(text).x / 2)
+    imgui.TextColoredRGB(text)
+end
+
+function imgui.TextColoredRGB(text)
+    local style = imgui.GetStyle()
+    local colors = style.Colors
+    local col = imgui.Col
+    
+    local designText = function(text__)
+        local pos = imgui.GetCursorPos()
+        if sampGetChatDisplayMode() == 2 then
+            for i = 1, 1 do
+                imgui.SetCursorPos(imgui.ImVec2(pos.x + i, pos.y))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+                imgui.SetCursorPos(imgui.ImVec2(pos.x - i, pos.y))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+                imgui.SetCursorPos(imgui.ImVec2(pos.x, pos.y + i))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+                imgui.SetCursorPos(imgui.ImVec2(pos.x, pos.y - i))
+                imgui.TextColored(imgui.ImVec4(0, 0, 0, 1), text__) -- shadow
+            end
+        end
+        imgui.SetCursorPos(pos)
+    end
+    
+    local text = text:gsub('{(%x%x%x%x%x%x)}', '{%1FF}')
+
+    local color = colors[col.Text]
+    local start = 1
+    local a, b = text:find('{........}', start)   
+    
+    while a do
+        local t = text:sub(start, a - 1)
+        if #t > 0 then
+            designText(t)
+            imgui.TextColored(color, t)
+            imgui.SameLine(nil, 0)
+        end
+
+        local clr = text:sub(a + 1, b - 1)
+        if clr:upper() == 'STANDART' then color = colors[col.Text]
+        else
+            clr = tonumber(clr, 16)
+            if clr then
+                local r = bit.band(bit.rshift(clr, 24), 0xFF)
+                local g = bit.band(bit.rshift(clr, 16), 0xFF)
+                local b = bit.band(bit.rshift(clr, 8), 0xFF)
+                local a = bit.band(clr, 0xFF)
+                color = imgui.ImVec4(r / 255, g / 255, b / 255, a / 255)
+            end
+        end
+
+        start = b + 1
+        a, b = text:find('{........}', start)
+    end
+    imgui.NewLine()
+    if #text >= start then
+        imgui.SameLine(nil, 0)
+        designText(text:sub(start))
+        imgui.TextColored(color, text:sub(start))
     end
 end
 
