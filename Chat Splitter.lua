@@ -1,8 +1,8 @@
 script_name("Chat Splitter")
 script_author("Visage A.K.A. Ishaan Dunne")
 
-local script_version = 1.77
-local script_version_text = '1.77'
+local script_version = 1.78
+local script_version_text = '1.78'
 
 local imgui, ffi = require 'mimgui', require 'ffi'
 local new, str, sizeof = imgui.new, ffi.string, ffi.sizeof
@@ -10,35 +10,23 @@ local encoding = require "encoding"
 encoding.default = "CP1251"
 u8 = encoding.UTF8
 local inicfg = require 'inicfg'
-local fa = require 'fAwesome5'
 local https = require 'ssl.https'
 local dlstatus = require('moonloader').download_status
 local script_path = thisScript().path
 local script_url = "https://raw.githubusercontent.com/Visaging/Chat-Splitter/main/Chat%20Splitter.lua"
 local update_url = "https://raw.githubusercontent.com/Visaging/Chat-Splitter/main/Chat%20Splitter.txt"
 local updatelogs_url = "https://raw.githubusercontent.com/Visaging/Chat-Splitter/main/update_logs.txt"
-local flags = require 'moonloader'.font_flag
 local events = require 'samp.events'
 
 local settings = inicfg.load({
     font = {
         show = false,
-        name = "Calibrib",
-        size = 10,
-        interval = 19,
+        name = 'calibrib.ttf',
+        size = 14,
         x = 300,
         y = 300,
         timestamp = true,
-        lines = 6,
-    },
-    flag = {
-        NONE      = false,
-        BOLD      = true,
-        ITALICS   = false,
-        BORDER    = true,
-        SHADOW    = false,
-        UNDERLINE = false,
-        STRIKEOUT = false,
+        lines = 12,
     },
     chats = {
         helper    = false,
@@ -56,82 +44,71 @@ local settings = inicfg.load({
 }, 'ChatSplitter.ini')
 
 local changePos = false
-local flag = 0
 local checkboxes = {}
 local renderMessages = {}
-local cMsg = 0
+local temp_pos = {x = 0, y = 0}
 
-local _menu, _contextMenu, updatelogs = false, false, false
+local _menu, updatelogs = false, false
+fontSize = imgui.new.int(tonumber(settings.font.size))
+local a = tonumber(settings.font.lines)
+chatLinesCount, linesCount = a, imgui.new.int(a)
 
 imgui.OnInitialize(function()
+    fonts = {}
+	fontsArray = {}
+    fontChanged, fontSizeChanged = false, false
     style()
 
-    local config = imgui.ImFontConfig()
-    config.MergeMode = true
-    local glyph_ranges = imgui.GetIO().Fonts:GetGlyphRangesCyrillic()
-    local iconRanges = imgui.new.ImWchar[3](fa.min_range, fa.max_range, 0)
-    imgui.GetIO().Fonts:AddFontFromFileTTF('trebucbd.ttf', 14.0, nil, glyph_ranges)
-    imgui.GetIO().Fonts:AddFontFromFileTTF('moonloader/resource/fonts/fa-solid-900.ttf', 14.0, config, iconRanges)
+    imgui.GetIO().IniFilename = nil
+	imgui.GetStyle().WindowBorderSize = 0
+	local glyph_ranges = imgui.GetIO().Fonts:GetGlyphRangesCyrillic()
+	imgui.GetIO().Fonts:Clear()
+	imgui.GetIO().Fonts:AddFontFromFileTTF(getFolderPath(0x14) .. '\\'..settings.font.name, fontSize[0], nil, glyph_ranges)
 
-	imgui.GetIO().ConfigWindowsMoveFromTitleBarOnly = true
-	imgui.GetIO().IniFilename = nil
+    local search, file = findFirstFile(getFolderPath(0x14) .. '\\*.ttf')
+	while file do
+		table.insert(fonts, file)
+		if file == settings.font.name then fontSelected = imgui.new.int(#fonts - 1) end
+		file = findNextFile(search)
+	end
+	fontsArray = imgui.new['const char*'][#fonts](fonts)
+	fontSize[0] = imgui.GetIO().Fonts.ConfigData.Data[0].SizePixels
 end)
 
 imgui.OnFrame(function() return _menu and not isGamePaused() end,
 function()
     width, height = getScreenResolution()
     imgui.SetNextWindowPos(imgui.ImVec2(width / 2, height / 2), imgui.Cond.Always, imgui.ImVec2(0.5, 0.5))
-    imgui.SetNextWindowSize(imgui.ImVec2(275, 430), imgui.Cond.FirstUseEver)
+    imgui.SetNextWindowSize(imgui.ImVec2(275, 410), imgui.Cond.FirstUseEver)
     imgui.BeginCustomTitle(u8"Chat Splitter | Settings", 30, main_win, imgui.WindowFlags.NoResize + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoScrollbar)
-
-        imgui.BeginChild("##69", imgui.ImVec2(265, 590), true)
+        imgui.BeginChild("##69", imgui.ImVec2(265, 365), true)
             imgui.SetCursorPos(imgui.ImVec2(65, 5))
             if imgui.Checkbox("Enable Chat Splitter", new.bool(settings.font.show)) then settings.font.show = not settings.font.show end
             imgui.Separator()
             imgui.SetCursorPos(imgui.ImVec2(5, 35))
-            imgui.BeginChild("##1", imgui.ImVec2(255, 120), true)
+            imgui.BeginChild("##1", imgui.ImVec2(255, 100), true)
             imgui.PushItemWidth(100)
-                tfont = new.char[256](settings.font.name)
-                imgui.TextColoredRGB("Font name: ") imgui.SameLine(105)
-                if imgui.InputText('##tfont', tfont, sizeof(tfont)) then settings.font.name = u8:decode(str(tfont)) applyfont() end
-                tlinespace = new.int(settings.font.interval)
-                imgui.Text("Line spacing: ") imgui.SameLine(105)
-                if imgui.DragInt('##tlinespace', tlinespace) then settings.font.interval = tlinespace[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##1') then settings.font.interval = settings.font.interval + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##1') then settings.font.interval = settings.font.interval - 1 applyfont() end
-                tnlines = new.int(settings.font.lines)
-                imgui.Text("Number of lines: ") imgui.SameLine(105)
-                if imgui.DragInt('##tnlines', tnlines) then settings.font.lines = tnlines[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##2') then settings.font.lines = settings.font.lines + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##2') then settings.font.lines = settings.font.lines - 1 applyfont() end
-                tfsize = new.int(settings.font.size)
+                local font = imgui.GetIO().Fonts.Fonts.Data[0]
+                imgui.Text("Font: ") imgui.SameLine(105)
+                if imgui.Combo(u8'##Font', fontSelected, fontsArray, #fonts) then
+                    fontChanged = true
+                    settings.font.name = fonts[fontSelected[0] + 1]
+                end
                 imgui.Text("Font Size: ") imgui.SameLine(105)
-                if imgui.DragInt('##tfsize', tfsize) then settings.font.size = tfsize[0] applyfont() end imgui.SameLine(nil, 5) if imgui.Button('+##3') then settings.font.size = settings.font.size + 1 applyfont() end imgui.SameLine(nil, 5) if imgui.Button('-##3') then settings.font.size = settings.font.size - 1 applyfont() end
+                if imgui.SliderInt(u8'##Font size', fontSize, 4, 30) then
+                    fontSizeChanged = true
+                    settings.font.size = fontSize[0]
+                end
+                imgui.Text("Number of lines: ") imgui.SameLine(105)
+                if imgui.SliderInt(u8'##Number of lines', linesCount, 4, 72) then
+                    chatLinesCount = linesCount[0]
+                    settings.font.lines = linesCount[0]
+                end
                 if imgui.Checkbox(u8('Timestamps'), new.bool(settings.font.timestamp)) then settings.font.timestamp = not settings.font.timestamp end
             imgui.EndChild()
-            imgui.SetCursorPos(imgui.ImVec2(5, 160))
-            imgui.BeginChild("##2", imgui.ImVec2(255, 100), true)
-                imgui.Text("Font Flags:")
-                imgui.BeginGroup()
-                for k, v in pairs(settings.flag) do checkboxes[k] = new.bool(v) end
-                local i = 1
-                for k, v in pairs(checkboxes) do
-                    if k ~= "NONE" then
-                        if i % 2 == 0 or i == #flags/2 then imgui.SameLine(100) end
-                        if imgui.Checkbox(k:upper(), v) then
-                            settings.flag[k] = not settings.flag[k]
-                            flag = 0
-                            for k, v in pairs(settings.flag) do
-                                if v then
-                                    flag = flag + flags[k]
-                                end
-                            end
-                            applyfont()
-                        end
-                        i = i + 1
-                    end
-                end
-            imgui.EndGroup()
-            imgui.EndChild()
-            imgui.SetCursorPos(imgui.ImVec2(5, 265))
+            imgui.SetCursorPos(imgui.ImVec2(5, 140))
             imgui.BeginChild("##3", imgui.ImVec2(255, 190), true)
-                if imgui.Button(fa.ICON_FA_CLIPBOARD_CHECK .. u8' Chat Selection Menu', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('chatselect') end
+                if imgui.Button(u8' Chat Selection Menu', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('chatselect') end
                 if imgui.BeginPopup('chatselect') then
                         imgui.BeginChild("##4", imgui.ImVec2(255, 310), true)
                             imgui.Text("Select which chat to split:")
@@ -165,9 +142,21 @@ function()
                         imgui.EndChild()
                     imgui.EndPopup()
                 end
-                if imgui.Button(fa.ICON_FA_ARROWS_ALT .. u8' Reposition', imgui.ImVec2(-1, 25)) then changePos = true _menu = false end
-                if imgui.Button(fa.ICON_FA_TRASH .. u8' Clear extra chat', imgui.ImVec2(-1, 25)) then renderMessages = {} end
-                if imgui.Button(fa.ICON_FA_CLIPBOARD_LIST .. u8' Update Logs', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('updatelogs') end
+                if imgui.Button(changePos and u8"Undo" or u8' Reposition', imgui.ImVec2(-1, 25)) then
+                    changePos = not changePos
+                    if changePos then
+                        temp_pos.x = settings.font.x
+                        temp_pos.y = settings.font.y
+                        changePos = true
+                    else
+                        settings.font.x = temp_pos.x
+                        settings.font.y = temp_pos.y
+                        changePos = false
+                        save()
+                    end
+                end
+                if imgui.Button(u8'Clear extra chat', imgui.ImVec2(-1, 25)) then renderMessages = {} end
+                if imgui.Button(u8'Update Logs', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('updatelogs') end
                 if imgui.BeginPopup('updatelogs') then
                         imgui.BeginChild("##4", imgui.ImVec2(400, 350), true)
                             imgui.SetCursorPos(imgui.ImVec2(85, 5))
@@ -180,13 +169,13 @@ function()
                         imgui.EndChild()
                     imgui.EndPopup()
                 end
-                if imgui.Button(fa.ICON_FA_SAVE .. u8' Save Config', imgui.ImVec2(-1, 25)) then save() sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} Config Saved!", script.this.name), -1) end
-                if imgui.Button(fa.ICON_FA_COG .. u8' Update Settings', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('updatemenu') end
+                if imgui.Button(u8'Save Config', imgui.ImVec2(-1, 25)) then save() sampAddChatMessage(string.format("{DFBD68}[%s]{FFFFFF} Config Saved!", script.this.name), -1) end
+                if imgui.Button(u8'Update Settings', imgui.ImVec2(-1, 25)) then imgui.OpenPopup('updatemenu') end
                 if imgui.BeginPopup('updatemenu') then
                     imgui.BeginChild("##5", imgui.ImVec2(255, 90), true)
-                        if imgui.Button(fa.ICON_FA_SYNC .. u8' Update', imgui.ImVec2(-1, 25)) then update_script(true, true, false, false) end
+                        if imgui.Button(u8' Update', imgui.ImVec2(-1, 25)) then update_script(true, true, false, false) end
                         if imgui.IsItemHovered() then imgui.SetTooltip('This will check for updates, if found will download it.') end
-                        if imgui.Button(fa.ICON_FA_DOWNLOAD .. u8' Force Update', imgui.ImVec2(-1, 25)) then update_script(false, false, true, false) end
+                        if imgui.Button(u8' Force Update', imgui.ImVec2(-1, 25)) then update_script(false, false, true, false) end
                         if imgui.Checkbox(u8('Auto Update'), new.bool(settings.autoupdate)) then settings.autoupdate = not settings.autoupdate end
                     imgui.EndChild()
                 imgui.EndPopup()
@@ -194,79 +183,81 @@ function()
             imgui.EndChild()
         imgui.Spacing()
         imgui.Separator()
-        imgui.SetCursorPos(imgui.ImVec2(30, 470))
+        imgui.SetCursorPos(imgui.ImVec2(30, 345))
         imgui.TextDisabled("Author: Visage A.K.A. Ishaan Dunne")
         imgui.EndChild()
     imgui.End()
 end)
 
-imgui.OnFrame(function() return _contextMenu and not isGamePaused() end,
+local chat = imgui.OnFrame(function() return settings.font.show and not isGamePaused() and not isPauseMenuActive() and sampIsChatVisible() and not sampIsScoreboardOpen() end,
 function()
-    imgui.SetNextWindowPos(imgui.ImVec2(cMsg[2], cMsg[3]))
-    imgui.Begin("##cm", _, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize)
-        if imgui.Button(u8("Delete"), imgui.ImVec2(100, 25)) then table.remove(renderMessages, cMsg[1]) cMsg = {} _contextMenu = false end
-        if imgui.Button(u8("Insert into chat"), imgui.ImVec2(100, 25)) then sampSetChatInputText(renderMessages[cMsg[1]][2]) cMsg = {} _contextMenu = false end
-        if isKeyJustPressed(0x01) then
-            local x, y = getCursorPos()
-            if x < cMsg[2] or x > cMsg[2] + 110 and y < imgui.GetWindowPos().y or y > imgui.GetWindowPos().y + 70 then
-                _contextMenu = false
+    if fontChanged then
+        fontChanged = false
+        local glyphRanges = imgui.GetIO().Fonts.Fonts.Data[0].ConfigData.GlyphRanges
+        local fontPath = ('%s\\%s'):format(getFolderPath(0x14), fonts[fontSelected[0] + 1])
+        imgui.GetIO().Fonts:Clear()
+        imgui.GetIO().Fonts:AddFontFromFileTTF(fontPath, fontSize[0], nil, glyphRanges)
+        imgui.InvalidateFontsTexture()
+    end
+    if fontSizeChanged then
+        fontSizeChanged = false
+        local fonts = imgui.GetIO().Fonts.ConfigData
+        for i = 0, fonts:size() - 1 do
+            fonts.Data[i].SizePixels = fontSize[0]
+        end
+        imgui.GetIO().Fonts:ClearTexData()
+        imgui.InvalidateFontsTexture()
+    end
+end, function(self)
+	imgui.SetNextWindowPos(imgui.ImVec2(settings.font.x, settings.font.y), imgui.Cond.Always)
+    imgui.SetNextWindowSize(imgui.ImVec2(1020, imgui.GetTextLineHeightWithSpacing() * chatLinesCount + 50 + 2), imgui.Cond.FirstUseEver)
+	imgui.Begin("split window 1", nil, imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoBackground)
+    if not sampIsChatInputActive() then
+        imgui.PushStyleColor(imgui.Col.ScrollbarBg, imgui.ImVec4(0.00, 0.00, 0.00, 0.00))
+        imgui.PushStyleColor(imgui.Col.ScrollbarGrab, imgui.ImVec4(0.00, 0.00, 0.00, 0.00))
+        imgui.PushStyleColor(imgui.Col.ScrollbarGrabHovered, imgui.ImVec4(0.00, 0.00, 0.00, 0.00))
+        imgui.PushStyleColor(imgui.Col.ScrollbarGrabActive, imgui.ImVec4(0.00, 0.00, 0.00, 0.00))
+        imgui.PopStyleColor()
+    elseif sampIsChatInputActive() then
+        imgui.PushStyleColor(imgui.Col.ScrollbarBg, imgui.ImVec4(0.12, 0.12, 0.12, 1.00))
+        imgui.PushStyleColor(imgui.Col.ScrollbarGrab, imgui.ImVec4(0.00, 0.00, 0.00, 1.00))
+        imgui.PushStyleColor(imgui.Col.ScrollbarGrabHovered, imgui.ImVec4(0.41, 0.41, 0.41, 1.00))
+        imgui.PushStyleColor(imgui.Col.ScrollbarGrabActive, imgui.ImVec4(0.51, 0.51, 0.51, 1.00))
+        imgui.PopStyleColor()
+    end
+    imgui.BeginChild('##content', imgui.ImVec2(0, imgui.GetTextLineHeightWithSpacing() * chatLinesCount + 2), false, imgui.WindowFlags.NoBackground)
+        if renderMessages ~= nil then
+            for k, v in ipairs(renderMessages) do
+                local text = settings.font.timestamp and os.date(v[1].."[%H:%M:%S] ", v[3]) .. v[2] or v[1]..v[2]
+                imgui.TextColoredRGB(text)
+                if not sampIsChatInputActive() then imgui.SetScrollY(imgui.GetScrollMaxY()) end
             end
         end
-    imgui.End()
+    imgui.EndChild()
+	imgui.End()
 end)
+chat.HideCursor = true
 
 function main()
     if not isSampfuncsLoaded() or not isSampLoaded() then return end
     while not isSampAvailable() do wait(100) end
-    for k, v in pairs(settings.flag) do
-        if v then
-            flag = flag + flags[k]
-        end
-    end
-    applyfont()
     sampRegisterChatCommand("chatsplit", function() _menu = not _menu end)
     updatelogs = https.request(updatelogs_url)
     if settings.autoupdate then update_script(true, false, false, false) else update_script(false, false, false, true) end
     sampAddChatMessage("{DFBD68}Chat Splitter by {FFFF00}Visage. {FF0000}[/chatsplit].", -1)
     while true do
         wait(0)
-        if settings.font.show and sampIsChatVisible() then
-            if #renderMessages > settings.font.lines then
-                table.remove(renderMessages, 1)
-            end
-            local y = settings.font.y
-            for k, v in ipairs(renderMessages) do
-                if k <= settings.font.lines then
-                    local text = settings.font.timestamp and os.date("[%H:%M:%S] ", v[3]) .. v[2] or v[2]
-                    local mx, my = getCursorPos()
-                    if sampIsCursorActive() and mx >= settings.font.x and mx <= settings.font.x + renderGetFontDrawTextLength(font, text) and my >= y and my <= y + renderGetFontDrawHeight(font) then
-                        local size = renderGetFontDrawHeight(font)
-                        renderDrawPolygon(settings.font.x - 10, y + size / 2 + 2, size/2, size/2, 50, 0, join_argb(rainbow(2, 255)))
-                        if isKeyJustPressed(0x02) then
-                            local x, y = getScreenResolution()
-                            if y - my < 55 then
-                                cMsg = {k, mx, my - 55}
-                            else
-                                cMsg = {k, mx, my}
-                            end
-                            _contextMenu = true
-                        end
-                    end
-                    renderFontDrawText(font, text, settings.font.x, y, bit.bor(v[1], 0xFF000000))
-                    y = y + settings.font.interval
-                end
-            end
-        end
         if changePos then
-            sampToggleCursor(true)
-            settings.font.x, settings.font.y = getCursorPos()
-            if isKeyJustPressed(0x01) then
-                changePos = false
-                _menu = true
-                sampToggleCursor(false)
-                save()
-            end
-        end
+			x, y = getCursorPos()
+			if isKeyJustPressed(VK_LBUTTON) then 
+				changePos = false
+			elseif isKeyJustPressed(VK_ESCAPE) then
+				changePos = false
+			else 
+				settings.font.x = x + 1
+				settings.font.y = y + 1
+			end
+		end
     end
 end
 
@@ -319,7 +310,7 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
         end
@@ -328,7 +319,7 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
         end
@@ -337,7 +328,7 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
         end
@@ -349,49 +340,49 @@ function events.onServerMessage(clr, msg)
                     chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                     chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                     chatlog:close()
-                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                     return false
                 end
                 if msg:match("* Junior Admin.+%:") then
                     chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                     chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                     chatlog:close()
-                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                     return false
                 end
                 if msg:match("* General Admin.+%:") then
                     chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                     chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                     chatlog:close()
-                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                     return false
                 end
                 if msg:match("* Senior Admin.+%:") then
                     chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                     chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                     chatlog:close()
-                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                     return false
                 end
                 if msg:match("* Head Admin.+%:") then
                     chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                     chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                     chatlog:close()
-                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                     return false
                 end
                 if msg:match("* Ast. Management.+%:") then
                     chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                     chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                     chatlog:close()
-                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                     return false
                 end
                 if msg:match("* Management.+%:") then
                     chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                     chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                     chatlog:close()
-                    table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                    table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                     return false
                 end
             end
@@ -402,7 +393,7 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
 
@@ -412,35 +403,35 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -5963606 and msg:match("___________________________________________________") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -28161 and msg:match(".+%(ID%: %d+%) %| RID%: %d+ %| Report%:.+%| Expires in%: %d+ minutes.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -28161 and (msg:match("Report from %[%d+%].+%(RID%: %d+%)%:.+") or msg:match("There.+{FF0606}.+pending.+{FFFF91} that.+expiring %- please check /reports and respond.")) then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -16382209 and msg:match("A report from.+%(ID %d+%) was not answered after 5 minutes and has expired. Please attend to reports before they expire.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
 
@@ -450,14 +441,14 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if  msg:match("AdmCmd%:.+") and (clr == -8388353 or clr == -10270806) then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
 
@@ -467,35 +458,35 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as a.+Admin.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -65366 and (msg:match("You are now off%-duty as admin, and only have access to /admins /check /jail /ban /sban /kick /skick /showflags /reports /nrn") or msg:match("You are now on%-duty as admin and have access to all your commands, see /ah.")) then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -16382209 and msg:match("Please remember to turn off any hacks you may have.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -86 and msg:match(".+%(.+%) has logged in as a.+Admin.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
 
@@ -505,42 +496,42 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -65366 and msg:match("Checking.+for desync, please wait") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -65366 and msg:match("%[BANK%].+%(IP%:.+%) has transferred.+to.+%(IP%:.+%).") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -65366 and msg:match(".+%(IP%:.+%) has sold.+%(IP%:.+%).+of materials in this session.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -65366 and msg:match(".+%(IP%:.+%) has paid.+%(IP%:.+%).+in this session.") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
             if clr == -65366 and msg:match("%[ATM%].+%(IP%:.+%) has transferred.+to.+%(IP%:.+%).") then
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
         end
@@ -549,7 +540,7 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
         end
@@ -558,7 +549,7 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
         end
@@ -567,7 +558,7 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
         end
@@ -576,7 +567,7 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
         end
@@ -585,7 +576,7 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
         end
@@ -594,16 +585,11 @@ function events.onServerMessage(clr, msg)
                 chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
                 chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
                 chatlog:close()
-                table.insert(renderMessages, {bit.rshift(clr, 8), msg, os.time()})
+                table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
                 return false
             end
         end
     end
-end
-
-function imgui.CenterTextColoredRGB(text)
-    imgui.SetCursorPosX(imgui.GetWindowSize().x / 2 - imgui.CalcTextSize(text).x / 2)
-    imgui.TextColoredRGB(text)
 end
 
 function imgui.TextColoredRGB(text)
@@ -664,14 +650,6 @@ function imgui.TextColoredRGB(text)
         designText(text:sub(start))
         imgui.TextColored(color, text:sub(start))
     end
-end
-
-function rainbow(speed, alpha)
-    return math.floor(math.sin(os.clock() * speed) * 127 + 128), math.floor(math.sin(os.clock() * speed + 2) * 127 + 128), math.floor(math.sin(os.clock() * speed + 4) * 127 + 128), alpha
-end
-
-function applyfont()
-    font = renderCreateFont(settings.font.name, settings.font.size, flag)
 end
 
 function save()
