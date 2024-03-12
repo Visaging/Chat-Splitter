@@ -40,8 +40,8 @@ local settings = inicfg.load({
     donator = {false,1},
     global = {false,1},
     portable = {false,1},
-    pos1={300,300},
-    pos2={400,400},
+    pos1={548,792},
+    pos2={29,758},
     autoupdate = false,
 }, 'ChatSplitter.ini')
 
@@ -211,7 +211,7 @@ function()
 end, function(self)
 	imgui.SetNextWindowPos(imgui.ImVec2(changePos and temppos[1] or settings.pos1[1], changePos and temppos[2] or settings.pos1[2]), imgui.Cond.Always)
     imgui.SetNextWindowSize(imgui.ImVec2(1020, imgui.GetTextLineHeightWithSpacing() * chatLinesCount + 50 + 2), imgui.Cond.FirstUseEver)
-	imgui.Begin("splitwindow##1", nil1, imgui.WindowFlags.NoFocusOnAppearing + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoBackground)
+	imgui.Begin("splitwindow##1", nil, imgui.WindowFlags.NoFocusOnAppearing + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoBackground)
     if not sampIsChatInputActive() then
         imgui.PushStyleColor(imgui.Col.ScrollbarBg, imgui.ImVec4(0.00, 0.00, 0.00, 0.00))
         imgui.PushStyleColor(imgui.Col.ScrollbarGrab, imgui.ImVec4(0.00, 0.00, 0.00, 0.00))
@@ -259,7 +259,7 @@ function()
 end, function(self2)
 	imgui.SetNextWindowPos(imgui.ImVec2(changePos2 and temppos2[1] or settings.pos2[1], changePos2 and temppos2[2] or settings.pos2[2]), imgui.Cond.Always)
     imgui.SetNextWindowSize(imgui.ImVec2(1020, imgui.GetTextLineHeightWithSpacing() * chatLinesCount + 50 + 2), imgui.Cond.FirstUseEver)
-	imgui.Begin("splitwindow##2", nil2, imgui.WindowFlags.NoFocusOnAppearing + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoBackground)
+	imgui.Begin("splitwindow##2", nil, imgui.WindowFlags.NoFocusOnAppearing + imgui.WindowFlags.NoTitleBar + imgui.WindowFlags.NoResize + imgui.WindowFlags.NoCollapse + imgui.WindowFlags.NoMove + imgui.WindowFlags.NoBackground)
     if not sampIsChatInputActive() then
         imgui.PushStyleColor(imgui.Col.ScrollbarBg, imgui.ImVec4(0.00, 0.00, 0.00, 0.00))
         imgui.PushStyleColor(imgui.Col.ScrollbarGrab, imgui.ImVec4(0.00, 0.00, 0.00, 0.00))
