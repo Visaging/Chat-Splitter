@@ -342,6 +342,9 @@ function imgui.cswitch(n1, n2)
 end
 
 function renderswitch(chat, clr, msg)
+    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
+    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
+    chatlog:close()
     if chat[2]==1 then table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()}) elseif chat[2]==2 then table.insert(renderMessages2, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()}) end
 end
 
@@ -384,290 +387,62 @@ end
 function events.onServerMessage(clr, msg)
     --table.insert(renderMessages, {"{"..string.sub(bit.tohex(clr), 1, 6).."}",msg, os.time()})
     if settings.font.show then
-        if settings.helper[1] and clr == -1511456854 then
-            if msg:match("*** .*") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.helper, clr, msg)
-                return false
-            end
-        end
-        if settings.com[1] and clr == 869072810 then
-            if msg:match("** .+Admin.+%:") or msg:match("*** .+Helper.+%:") or msg:match("*** Former Admin") or msg:match("** Helper Manager") or msg:match("** Management") or msg:match("** Asst. Management") or msg:match("** Assistant Management") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.com, clr, msg)
-                return false
-            end
-        end
-        if settings.newbie[1] and clr == 2108620799 then
-            if msg:match("** .*") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.newbie, clr, msg)
-                return false
-            end
-        end
+        if settings.helper[1] and clr == -1511456854 then if msg:match("*** .*") then renderswitch(settings.helper, clr, msg) return false end end
+        if settings.com[1] and clr == 869072810 then if msg:match("** .+Admin.+%:") or msg:match("*** .+Helper.+%:") or msg:match("*** Former Admin") or msg:match("** Helper Manager") or msg:match("** Management") or msg:match("** Asst. Management") or msg:match("** Assistant Management") then renderswitch(settings.com, clr, msg) return false end end
+        if settings.newbie[1] and clr == 2108620799 then if msg:match("** .*") then renderswitch(settings.newbie, clr, msg) return false end end
         if settings.admin[1] then
 
             --Admin Chat (/a)
             if clr == -86 then
-                if msg:match("* Secret Admin.+%:") then
-                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                    chatlog:close()
-                    renderswitch(settings.admin, clr, msg)
-                    return false
-                end
-                if msg:match("* Junior Admin.+%:") then
-                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                    chatlog:close()
-                    renderswitch(settings.admin, clr, msg)
-                    return false
-                end
-                if msg:match("* General Admin.+%:") then
-                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                    chatlog:close()
-                    renderswitch(settings.admin, clr, msg)
-                    return false
-                end
-                if msg:match("* Senior Admin.+%:") then
-                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                    chatlog:close()
-                    renderswitch(settings.admin, clr, msg)
-                    return false
-                end
-                if msg:match("* Head Admin.+%:") then
-                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                    chatlog:close()
-                    renderswitch(settings.admin, clr, msg)
-                    return false
-                end
-                if msg:match("* Ast. Management.+%:") then
-                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                    chatlog:close()
-                    renderswitch(settings.admin, clr, msg)
-                    return false
-                end
-                if msg:match("* Management.+%:") then
-                    chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                    chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                    chatlog:close()
-                    renderswitch(settings.admin, clr, msg)
-                    return false
-                end
+                if msg:match("* Secret Admin.+%:") then renderswitch(settings.admin, clr, msg) return false end
+                if msg:match("* Junior Admin.+%:") then renderswitch(settings.admin, clr, msg) return false end
+                if msg:match("* General Admin.+%:") then renderswitch(settings.admin, clr, msg) return false end
+                if msg:match("* Senior Admin.+%:") then renderswitch(settings.admin, clr, msg) return false end
+                if msg:match("* Head Admin.+%:") then renderswitch(settings.admin, clr, msg) return false end
+                if msg:match("* Ast. Management.+%:") then renderswitch(settings.admin, clr, msg) return false end
+                if msg:match("* Management.+%:") then renderswitch(settings.admin, clr, msg) return false end
             end
 
             --Flags & Requests
 
-            if clr == -65366 and (msg:match("Outstanding.+flag%: {FFFFFF}.+%(ID %d+%) %| Reason%:.+%(.+%).") or msg:match("Login notice%: {FFFFFF}.+%(ID %d+%) has previously been reported for .+") or msg:match(".+has denied.+name change request")) then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
+            if clr == -65366 and (msg:match("Outstanding.+flag%: {FFFFFF}.+%(ID %d+%) %| Reason%:.+%(.+%).") or msg:match("Login notice%: {FFFFFF}.+%(ID %d+%) has previously been reported for .+") or msg:match(".+has denied.+name change request")) then renderswitch(settings.admin, clr, msg) return false end
 
             -- Reports
 
-            if clr == -5963606 and msg:match("____________________ REPORTS _____________________") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -5963606 and msg:match("___________________________________________________") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -28161 and msg:match(".+%(ID%: %d+%) %| RID%: %d+ %| Report%:.+%| Expires in%: %d+ minutes.") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -28161 and (msg:match("Report from %[%d+%].+%(RID%: %d+%)%:.+") or msg:match("There.+{FF0606}.+pending.+{FFFF91} that.+expiring %- please check /reports and respond.")) then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -16382209 and msg:match("A report from.+%(ID %d+%) was not answered after 5 minutes and has expired. Please attend to reports before they expire.") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
+            if clr == -5963606 and msg:match("____________________ REPORTS _____________________") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -5963606 and msg:match("___________________________________________________") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -28161 and msg:match(".+%(ID%: %d+%) %| RID%: %d+ %| Report%:.+%| Expires in%: %d+ minutes.") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -28161 and (msg:match("Report from %[%d+%].+%(RID%: %d+%)%:.+") or msg:match("There.+{FF0606}.+pending.+{FFFF91} that.+expiring %- please check /reports and respond.")) then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -16382209 and msg:match("A report from.+%(ID %d+%) was not answered after 5 minutes and has expired. Please attend to reports before they expire.") then renderswitch(settings.admin, clr, msg) return false end
 
             -- AdmCmd & AdmWarning
 
-            if clr == -1439485014 and msg:match("AdmWarning%:.+") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if  msg:match("AdmCmd%:.+") and (clr == -8388353 or clr == -10270806) then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
+            if clr == -1439485014 and msg:match("AdmWarning%:.+") then renderswitch(settings.admin, clr, msg) return false end
+            if  msg:match("AdmCmd%:.+") and (clr == -8388353 or clr == -10270806) then renderswitch(settings.admin, clr, msg) return false end
 
             --On-Duty & Off-Duty
 
-            if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as a.+Admin.") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as a.+Admin.") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -65366 and (msg:match("You are now off%-duty as admin, and only have access to /admins /check /jail /ban /sban /kick /skick /showflags /reports /nrn") or msg:match("You are now on%-duty as admin and have access to all your commands, see /ah.")) then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -16382209 and msg:match("Please remember to turn off any hacks you may have.") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -86 and msg:match(".+%(.+%) has logged in as a.+Admin.") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
+            if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as a.+Admin.") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as a.+Admin.") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -65366 and (msg:match("You are now off%-duty as admin, and only have access to /admins /check /jail /ban /sban /kick /skick /showflags /reports /nrn") or msg:match("You are now on%-duty as admin and have access to all your commands, see /ah.")) then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -16382209 and msg:match("Please remember to turn off any hacks you may have.") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -86 and msg:match(".+%(.+%) has logged in as a.+Admin.") then renderswitch(settings.admin, clr, msg) return false end
 
             --Alerts
 
-            if clr == -86 and msg:match("The player you were spectating has left the server.") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -65366 and msg:match("Checking.+for desync, please wait") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -65366 and msg:match("%[BANK%].+%(IP%:.+%) has transferred.+to.+%(IP%:.+%).") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -65366 and msg:match(".+%(IP%:.+%) has sold.+%(IP%:.+%).+of materials in this session.") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -65366 and msg:match(".+%(IP%:.+%) has paid.+%(IP%:.+%).+in this session.") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
-            if clr == -65366 and msg:match("%[ATM%].+%(IP%:.+%) has transferred.+to.+%(IP%:.+%).") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.admin, clr, msg)
-                return false
-            end
+            if clr == -86 and msg:match("The player you were spectating has left the server.") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -65366 and msg:match("Checking.+for desync, please wait") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -65366 and msg:match("%[BANK%].+%(IP%:.+%) has transferred.+to.+%(IP%:.+%).") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -65366 and msg:match(".+%(IP%:.+%) has sold.+%(IP%:.+%).+of materials in this session.") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -65366 and msg:match(".+%(IP%:.+%) has paid.+%(IP%:.+%).+in this session.") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -65366 and msg:match("%[ATM%].+%(IP%:.+%) has transferred.+to.+%(IP%:.+%).") then renderswitch(settings.admin, clr, msg) return false end
         end
-        if settings.facr[1] and clr == -1920073729 then
-            if msg:match("** ") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.facr, clr, msg)
-                return false
-            end
-        end
-        if settings.facd[1] and clr == -2686902 then
-            if msg:match("** ") or msg:match(".+has reported.+as a wanted person.") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.facd, clr, msg)
-                return false
-            end
-        end
-        if settings.portable[1] and clr == 1845194239 then
-            if msg:match("**.Radio %(.+% kHz%).%**.+%:") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.portable, clr, msg)
-                return false
-            end
-        end
-        if settings.global[1] and clr == -5963606 then
-            if msg:match("%(%(") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.global, clr, msg)
-                return false
-            end
-        end
-        if settings.family[1] and clr == 33357768 then
-            if msg:match("** ") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.family, clr, msg)
-                return false
-            end
-        end
-        if settings.donator[1] and clr == -1210979584 then
-            if msg:match("%(%(") then
-                chatlog = io.open(getFolderPath(5).."\\GTA San Andreas User Files\\SAMP\\chatlog.txt", "a")
-                chatlog:write(os.date("[%H:%M:%S] ") .. msg .. "\n")
-                chatlog:close()
-                renderswitch(settings.donator, clr, msg)
-                return false
-            end
-        end
+        if settings.facr[1] and clr == -1920073729 then if msg:match("** ") then renderswitch(settings.facr, clr, msg) return false end end
+        if settings.facd[1] and clr == -2686902 then if msg:match("** ") or msg:match(".+has reported.+as a wanted person.") then renderswitch(settings.facd, clr, msg) return false end end
+        if settings.portable[1] and clr == 1845194239 then if msg:match("**.Radio %(.+% kHz%).%**.+%:") then renderswitch(settings.portable, clr, msg) return false end end
+        if settings.global[1] and clr == -5963606 then if msg:match("%(%(") then renderswitch(settings.global, clr, msg) return false end end
+        if settings.family[1] and clr == 33357768 then if msg:match("** ") then renderswitch(settings.family, clr, msg) return false end end
+        if settings.donator[1] and clr == -1210979584 then if msg:match("%(%(") then renderswitch(settings.donator, clr, msg) return false end end
     end
 end
 
