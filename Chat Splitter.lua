@@ -390,6 +390,7 @@ function events.onServerMessage(clr, msg)
         if settings.helper[1] and clr == -1511456854 then if msg:match("*** .*") then renderswitch(settings.helper, clr, msg) return false end end
         if settings.com[1] and clr == 869072810 then if msg:match("** .+Admin.+%:") or msg:match("*** .+Helper.+%:") or msg:match("*** Former Admin") or msg:match("** Helper Manager") or msg:match("** Management") or msg:match("** Asst. Management") or msg:match("** Assistant Management") then renderswitch(settings.com, clr, msg) return false end end
         if settings.newbie[1] and clr == 2108620799 then if msg:match("** .*") then renderswitch(settings.newbie, clr, msg) return false end end
+        
         if settings.admin[1] then
 
             --Admin Chat (/a)
@@ -422,8 +423,7 @@ function events.onServerMessage(clr, msg)
 
             --On-Duty & Off-Duty
 
-            if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as a.+Admin.") then renderswitch(settings.admin, clr, msg) return false end
-            if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as a.+Admin.") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as.+") then renderswitch(settings.admin, clr, msg) return fals
             if clr == -65366 and (msg:match("You are now off%-duty as admin, and only have access to /admins /check /jail /ban /sban /kick /skick /showflags /reports /nrn") or msg:match("You are now on%-duty as admin and have access to all your commands, see /ah.")) then renderswitch(settings.admin, clr, msg) return false end
             if clr == -16382209 and msg:match("Please remember to turn off any hacks you may have.") then renderswitch(settings.admin, clr, msg) return false end
             if clr == -86 and msg:match(".+%(.+%) has logged in as a.+Admin.") then renderswitch(settings.admin, clr, msg) return false end
@@ -433,9 +433,9 @@ function events.onServerMessage(clr, msg)
             if clr == -86 and msg:match("The player you were spectating has left the server.") then renderswitch(settings.admin, clr, msg) return false end
             if clr == -65366 and msg:match("Checking.+for desync, please wait") then renderswitch(settings.admin, clr, msg) return false end
             if clr == -65366 and msg:match("%[BANK%].+%(IP%:.+%) has transferred.+to.+%(IP%:.+%).") then renderswitch(settings.admin, clr, msg) return false end
-            if clr == -65366 and msg:match(".+%(IP%:.+%) has sold.+%(IP%:.+%).+of materials in this session.") then renderswitch(settings.admin, clr, msg) return false end
-            if clr == -65366 and msg:match(".+%(IP%:.+%) has paid.+%(IP%:.+%).+in this session.") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -65366 and msg:match(".+%(IP%:.+%) has.+%(IP%:.+%).+in this session.") then renderswitch(settings.admin, clr, msg) return false end
             if clr == -65366 and msg:match("%[ATM%].+%(IP%:.+%) has transferred.+to.+%(IP%:.+%).") then renderswitch(settings.admin, clr, msg) return false end
+            if clr == -65366 and msg:match("WARNING%: .+%(IP%:.+%) tried to login whilst banned and has been auto%-banned.") then renderswitch(settings.admin, clr, msg) return false end
         end
         if settings.facr[1] and clr == -1920073729 then if msg:match("** ") then renderswitch(settings.facr, clr, msg) return false end end
         if settings.facd[1] and clr == -2686902 then if msg:match("** ") or msg:match(".+has reported.+as a wanted person.") then renderswitch(settings.facd, clr, msg) return false end end
