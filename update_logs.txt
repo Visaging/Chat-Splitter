@@ -1,3 +1,7 @@
+Version 1.79
+1. Addition of news chat.
+2. Minor bug fixes.
+
 Version 1.78
 1. Chat interface now uses mimgui.
 2. Addition of a second split chat.
