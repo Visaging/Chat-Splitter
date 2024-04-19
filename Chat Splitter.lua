@@ -1,8 +1,8 @@
 script_name("Chat Splitter")
 script_author("Visage A.K.A. Ishaan Dunne")
 
-local script_version = 1.78
-local script_version_text = '1.78'
+local script_version = 1.79
+local script_version_text = '1.79'
 
 require"lib.moonloader"
 require"lib.sampfuncs"
@@ -40,6 +40,7 @@ local settings = inicfg.load({
     donator = {false,1},
     global = {false,1},
     portable = {false,1},
+    news = {false,1},
     pos1={548,792},
     pos2={29,758},
     autoupdate = false,
@@ -124,6 +125,7 @@ function()
                             if imgui.Checkbox(u8('Global Chat'), new.bool(settings.global[1])) then settings.global[1] = not settings.global[1] end imgui.cswitch(settings.global, 'global')
                             if imgui.Checkbox(u8('Donator Chat'), new.bool(settings.donator[1])) then settings.donator[1] = not settings.donator[1] end imgui.cswitch(settings.donator, 'donator')
                             if imgui.Checkbox(u8('Portable Radio Chat'), new.bool(settings.portable[1])) then settings.portable[1] = not settings.portable[1] end imgui.cswitch(settings.portable, 'portable')
+                            if imgui.Checkbox(u8('News Chat'), new.bool(settings.news[1])) then settings.news[1] = not settings.news[1] end imgui.cswitch(settings.news, 'news')
                             imgui.Spacing()
                             imgui.Separator()
                             imgui.Spacing()
@@ -443,6 +445,7 @@ function events.onServerMessage(clr, msg)
         if settings.global[1] and clr == -5963606 then if msg:match("%(%(") then renderswitch(settings.global, clr, msg) return false end end
         if settings.family[1] and clr == 33357768 then if msg:match("** ") then renderswitch(settings.family, clr, msg) return false end end
         if settings.donator[1] and clr == -1210979584 then if msg:match("%(%(") then renderswitch(settings.donator, clr, msg) return false end end
+        if settings.news[1] and clr == -1697828182 then if msg:match("NR .+%:") or msg:match("Live News Reporter .+%:") or msg:match("Live Interview Guest .+%:") then renderswitch(settings.news, clr, msg) return false end end
     end
 end
 
