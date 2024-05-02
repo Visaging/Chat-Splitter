@@ -425,7 +425,7 @@ function events.onServerMessage(clr, msg)
 
             --On-Duty & Off-Duty
 
-            if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as.+") then renderswitch(settings.admin, clr, msg) return fals
+            if clr == -86 and msg:match(".+%(ID %d+ %- .+%) is now.+as.+") then renderswitch(settings.admin, clr, msg) return false end
             if clr == -65366 and (msg:match("You are now off%-duty as admin, and only have access to /admins /check /jail /ban /sban /kick /skick /showflags /reports /nrn") or msg:match("You are now on%-duty as admin and have access to all your commands, see /ah.")) then renderswitch(settings.admin, clr, msg) return false end
             if clr == -16382209 and msg:match("Please remember to turn off any hacks you may have.") then renderswitch(settings.admin, clr, msg) return false end
             if clr == -86 and msg:match(".+%(.+%) has logged in as a.+Admin.") then renderswitch(settings.admin, clr, msg) return false end
